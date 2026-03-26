@@ -6,6 +6,7 @@ st.set_page_config(
     page_title="TUNAGアルムナイ｜採用費シミュレーター",
     page_icon="📊",
     layout="wide",
+    initial_sidebar_state="expanded",
 )
 
 # ══ Constants ══════════════════════════════════════════════════
@@ -96,6 +97,10 @@ body {
 footer, #MainMenu, header[data-testid="stHeader"],
 [data-testid="stToolbar"], .stDeployButton,
 [data-testid="stDecoration"] { display: none !important; }
+
+/* サイドバー折りたたみボタンを非表示（常時固定） */
+[data-testid="stSidebarCollapseButton"] { display: none !important; }
+[data-testid="stSidebarNavSeparator"]   { display: none !important; }
 
 /* ── Sidebar ── */
 [data-testid="stSidebar"] {
