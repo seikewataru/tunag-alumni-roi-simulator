@@ -98,9 +98,6 @@ footer, #MainMenu, header[data-testid="stHeader"],
 [data-testid="stToolbar"], .stDeployButton,
 [data-testid="stDecoration"] { display: none !important; }
 
-/* サイドバー折りたたみボタンを非表示（常時固定） */
-[data-testid="stSidebarCollapseButton"] { display: none !important; }
-[data-testid="stSidebarNavSeparator"]   { display: none !important; }
 
 /* ── Sidebar ── */
 [data-testid="stSidebar"] {
