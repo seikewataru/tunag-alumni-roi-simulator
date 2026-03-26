@@ -7,18 +7,6 @@ st.set_page_config(
     layout="wide",
 )
 
-# ── プリセット ─────────────────────────────────────────────────────────────
-INDUSTRY_PRESETS = {
-    "保育・介護":   dict(leavers=800,  hires=1000, agency_ratio=70, agency_unit=900_000, media_ratio=15, media_unit=175_000, register_rate=25, return_rate=8),
-    "飲食・ホテル": dict(leavers=600,  hires=800,  agency_ratio=30, agency_unit=500_000, media_ratio=40, media_unit=150_000, register_rate=35, return_rate=12),
-    "小売・美容":   dict(leavers=500,  hires=700,  agency_ratio=50, agency_unit=700_000, media_ratio=30, media_unit=175_000, register_rate=30, return_rate=10),
-    "製造・物流":   dict(leavers=300,  hires=400,  agency_ratio=40, agency_unit=600_000, media_ratio=35, media_unit=150_000, register_rate=20, return_rate=8),
-}
-CHANNEL_PRESETS = {
-    "人材紹介中心": dict(agency_ratio=65, media_ratio=16),
-    "バランス型":   dict(agency_ratio=50, media_ratio=30),
-    "媒体中心":     dict(agency_ratio=30, media_ratio=50),
-}
 DEFAULTS = dict(leavers=900, hires=1000, agency_ratio=65, agency_unit=850_000,
                 media_ratio=16, media_unit=175_000, register_rate=30, return_rate=10)
 
@@ -64,19 +52,6 @@ div[data-testid="stTextInput"] input:focus {
   border-color: #2b70ef !important; box-shadow: 0 0 0 2px #dde8ff !important;
 }
 
-/* ── プリセットボタン ── */
-div[data-testid="stButton"] > button {
-  font-size: 12px !important; font-weight: 500 !important;
-  padding: 6px 4px !important; border-radius: 8px !important;
-  border: 1px solid #e2e8f0 !important;
-  background: #f8fafc !important; color: #475569 !important;
-  transition: all .15s !important;
-}
-div[data-testid="stButton"] > button:hover {
-  border-color: #2b70ef !important; color: #2b70ef !important;
-  background: #f0f5ff !important;
-}
-
 /* ── スライダーラベル行 ── */
 .srow  { display:flex; justify-content:space-between; align-items:baseline; margin: 12px 0 1px 0; }
 .slbl  { font-size: 12px; color: #475569; }
@@ -87,14 +62,6 @@ div[data-testid="stButton"] > button:hover {
 div[data-testid="stSlider"] { margin-top: -2px !important; margin-bottom: 0 !important; }
 div[data-testid="stSlider"] > div > div > div { background: #2b70ef !important; }
 div[data-testid="stSlider"] p { display: none !important; }
-
-/* ── チャネル構成 ── */
-.ch-info {
-  font-size: 11px; color: #475569; background: #f8fafc;
-  border: 1px solid #e2e8f0; border-radius: 7px;
-  padding: 6px 10px; margin: 6px 0 10px 0;
-}
-.ch-info b { color: #2b70ef; }
 
 /* ── 区切り ── */
 .hr { border: none; border-top: 1px solid #f1f5f9; margin: 14px 0; }
@@ -258,19 +225,6 @@ with left:
 
     st.markdown('<hr class="hr">', unsafe_allow_html=True)
 
-    # 業種プリセット
-    st.markdown('<p class="sec" style="margin-top:0">まず業種を選んでください</p>', unsafe_allow_html=True)
-    r1c1, r1c2 = st.columns(2)
-    r2c1, r2c2 = st.columns(2)
-    preset_items = list(INDUSTRY_PRESETS.items())
-    for col, (name, vals) in zip([r1c1, r1c2, r2c1, r2c2], preset_items):
-        if col.button(name, key=f"ind_{name}", use_container_width=True):
-            for k, v in vals.items():
-                st.session_state[k] = v
-            st.rerun()
-
-    st.markdown('<hr class="hr">', unsafe_allow_html=True)
-
     # スライダーヘルパー
     def sldr(label, key, mn, mx, step, fmt_fn, hint=""):
         v = st.session_state.get(key, DEFAULTS.get(key, mn))
@@ -292,25 +246,12 @@ with left:
 
     # 採用チャネル
     st.markdown('<p class="sec">採用チャネルの構成</p>', unsafe_allow_html=True)
-    ch1, ch2, ch3 = st.columns(3)
-    for col, (cname, cvals) in zip([ch1, ch2, ch3], CHANNEL_PRESETS.items()):
-        if col.button(cname, key=f"ch_{cname}", use_container_width=True):
-            for k, v in cvals.items():
-                st.session_state[k] = v
-            st.rerun()
-
-    agency_ratio = st.session_state.get("agency_ratio", 65)
-    media_ratio  = st.session_state.get("media_ratio", 16)
-    referral     = 100 - agency_ratio - media_ratio
-    st.markdown(
-        f'<div class="ch-info">人材紹介 <b>{agency_ratio}%</b> ／ '
-        f'媒体 <b>{media_ratio}%</b> ／ その他 <b>{referral}%</b></div>',
-        unsafe_allow_html=True,
-    )
-    agency_unit = sldr("人材紹介　採用単価", "agency_unit", 0, 2_000_000, 50_000,
-                       lambda v: f"¥{v:,}", hint="人材紹介経由の1名あたりコスト")
-    media_unit  = sldr("通常媒体　採用単価", "media_unit",  0,   500_000,  5_000,
-                       lambda v: f"¥{v:,}", hint="求人媒体経由の1名あたりコスト")
+    agency_ratio = sldr("人材紹介の比率", "agency_ratio", 0, 100, 1, lambda v: f"{v}%")
+    agency_unit  = sldr("人材紹介　採用単価", "agency_unit", 0, 2_000_000, 50_000,
+                        lambda v: f"¥{v:,}", hint="人材紹介経由の1名あたりコスト")
+    media_ratio  = sldr("通常媒体の比率", "media_ratio", 0, 100, 1, lambda v: f"{v}%")
+    media_unit   = sldr("通常媒体　採用単価", "media_unit",  0,   500_000,  5_000,
+                        lambda v: f"¥{v:,}", hint="求人媒体経由の1名あたりコスト")
 
     st.markdown('<hr class="hr">', unsafe_allow_html=True)
 
