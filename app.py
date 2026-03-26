@@ -29,10 +29,10 @@ DEFAULT_CH = {
 SECTIONS = {
     'chuto':  {'label': '中途（正社員）',     'default_on': True,  'hires': 100, 'leavers': 60},
     'shinso': {'label': '新卒（正社員）',     'default_on': False, 'hires':  30, 'leavers':  5},
-    'part':   {'label': 'パート・アルバイト', 'default_on': False, 'hires': 500, 'leavers':400},
+    'part':   {'label': 'パート・アルバイト', 'default_on': False, 'hires': 500, 'leavers': 400},
 }
 
-# ══ Session state init ══════════════════════════════════════════
+# ══ Session state ══════════════════════════════════════════════
 for sec, m in SECTIONS.items():
     st.session_state.setdefault(f'{sec}_on', m['default_on'])
     st.session_state.setdefault(f'{sec}_hires', m['hires'])
@@ -49,141 +49,309 @@ st.session_state.setdefault('spot_fulfill_rate', 50)
 st.session_state.setdefault('initial_fee', 500_000)
 st.session_state.setdefault('monthly_fee', 200_000)
 st.session_state.setdefault('company_name', '')
-# Results cache: populated on 入力 tab, read on 結果 tab
 st.session_state.setdefault('results_cache', {})
 st.session_state.setdefault('spot_cache', {})
 
 # ══ CSS ════════════════════════════════════════════════════════
 st.markdown("""
 <style>
-.stApp { background: #f9fafb; }
+/* ── Design tokens (melta design system + 5 designers) ── */
+:root {
+  --p:          #2b70ef;   /* primary-500 */
+  --p-hover:    #1d5fd4;   /* primary-600 */
+  --p-surface:  #f0f5ff;   /* primary-50  */
+  --p-border:   #c0d4ff;   /* primary-200 */
+
+  --success:         #059669;
+  --success-surface: #ecfdf5;
+  --success-border:  #a7f3d0;
+  --warning:         #d97706;
+  --warning-surface: #fffbeb;
+  --warning-border:  #fde68a;
+  --danger:          #ef4444;
+  --danger-surface:  #fef2f2;
+  --danger-border:   #fecaca;
+  --neutral:         #64748b;
+
+  --text-1: #0f172a;   /* headings */
+  --text-2: #3d4b5f;   /* body (melta) */
+  --text-3: #64748b;   /* secondary */
+  --text-4: #94a3b8;   /* muted / labels */
+
+  --bg-page:    #f8fafc;
+  --bg-surface: #ffffff;
+  --bd:         #e2e8f0;
+  --bd-sub:     #f1f5f9;
+}
+
+/* ── Global ── */
+.stApp { background: var(--bg-page); }
 .block-container { padding: 28px 32px 48px !important; max-width: 1100px !important; }
-body { font-family: "Inter", "Noto Sans JP", "Hiragino Sans", sans-serif; }
+body {
+  font-family: "Inter", "Noto Sans JP", "Hiragino Sans", sans-serif;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+  color: var(--text-2);
+}
 footer, #MainMenu, header[data-testid="stHeader"],
 [data-testid="stToolbar"], .stDeployButton,
 [data-testid="stDecoration"] { display: none !important; }
 
 /* ── Sidebar ── */
 [data-testid="stSidebar"] {
-  background: #ffffff !important;
-  border-right: 1px solid #e2e8f0 !important;
-  min-width: 180px !important;
-  max-width: 220px !important;
+  background: var(--bg-surface) !important;
+  border-right: 1px solid var(--bd) !important;
+  min-width: 220px !important;
+  max-width: 240px !important;
 }
-[data-testid="stSidebarContent"] { padding: 20px 16px !important; }
+[data-testid="stSidebarContent"] { padding: 24px 12px 20px !important; }
 
-.nav-logo { font-size: 13px; font-weight: 700; color: #0f172a; margin: 0 0 2px 0; }
-.nav-sub  { font-size: 11px; color: #94a3b8; margin: 0 0 20px 0; padding-bottom: 16px; border-bottom: 1px solid #f1f5f9; }
+.nav-brand {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 8px 18px 8px; margin-bottom: 12px;
+  border-bottom: 1px solid var(--bd-sub);
+}
+.nav-brand-icon {
+  width: 30px; height: 30px; border-radius: 8px;
+  background: var(--p); color: #fff;
+  font-size: 14px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.nav-logo { font-size: 13px; font-weight: 600; color: var(--text-1); margin: 0; line-height: 1.3; }
+.nav-sub  { font-size: 11px; color: var(--text-4); margin: 0; line-height: 1.4; }
 
-/* ── Page ── */
-.pg-title { font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 4px 0; }
-.pg-sub   { font-size: 13px; color: #94a3b8; margin: 0 0 20px 0; }
-
-/* Input card */
-.input-card {
-  background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
-  padding: 24px 24px 28px; box-shadow: 0 1px 3px rgba(0,0,0,.05);
-  margin-bottom: 16px;
+/* Radio → nav item */
+[data-testid="stSidebar"] [data-testid="stRadio"] label {
+  display: flex !important; align-items: center !important;
+  width: 100% !important; padding: 8px 12px !important;
+  border-radius: 8px !important; cursor: pointer !important;
+  transition: background 120ms ease, color 120ms ease !important;
+  color: var(--text-3) !important; font-size: 13px !important;
+  font-weight: 500 !important; margin-bottom: 2px !important;
+  background: transparent !important; border: 1px solid transparent !important;
+  line-height: 1 !important;
+}
+[data-testid="stSidebar"] [data-testid="stRadio"] label > div:first-child { display: none !important; }
+[data-testid="stSidebar"] [data-testid="stRadio"] label p {
+  color: inherit !important; font-size: 13px !important; font-weight: inherit !important; margin: 0 !important;
+}
+[data-testid="stSidebar"] [data-testid="stRadio"] label:hover {
+  background: var(--bg-page) !important; color: var(--text-1) !important;
+}
+[data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked) {
+  background: var(--p-surface) !important; color: var(--p) !important;
+  font-weight: 600 !important; border-color: var(--p-border) !important;
 }
 
-/* Labels */
-.company-lbl { font-size: 11px; font-weight: 500; color: #94a3b8; letter-spacing: .08em; text-transform: uppercase; margin: 0 0 6px 0; }
-.field-lbl   { font-size: 11px; font-weight: 500; color: #94a3b8; letter-spacing: .08em; text-transform: uppercase; margin: 14px 0 6px 0; }
+/* ── Page title ── */
+.pg-title { font-size: 28px; font-weight: 700; color: var(--text-1); margin: 0 0 4px 0; letter-spacing: -0.015em; line-height: 1.25; }
+.pg-sub   { font-size: 14px; color: var(--text-4); margin: 0 0 20px 0; line-height: 1.6; }
+
+/* ── Input form ── */
+.company-lbl { font-size: 12px; font-weight: 500; color: var(--text-2); margin: 0 0 6px 0; }
+.field-lbl   { font-size: 12px; font-weight: 500; color: var(--text-2); margin: 14px 0 6px 0; }
 
 div[data-testid="stTextInput"] input {
-  border-radius: 6px !important; border: 1px solid #e2e8f0 !important;
-  font-size: 14px !important; color: #0f172a !important; background: #fff !important;
+  border-radius: 8px !important; border: 1px solid var(--bd) !important;
+  font-size: 14px !important; color: var(--text-1) !important; background: var(--bg-surface) !important;
+  transition: border-color 0.15s, box-shadow 0.15s !important;
 }
 div[data-testid="stTextInput"] input:focus {
-  border-color: #2b70ef !important; outline: none !important;
+  border-color: var(--p) !important;
+  box-shadow: 0 0 0 3px rgba(43,112,239,.12) !important; outline: none !important;
 }
 
-/* Section header */
-.sec-row { display: flex; justify-content: space-between; align-items: center; margin: 0 0 10px 0; }
-.sec-lbl { font-size: 14px; font-weight: 600; color: #0f172a; margin: 0; }
-.sec-divider { border: none; border-top: 1px solid #f1f5f9; margin: 20px 0 16px 0; }
+/* Section header with ON/OFF state */
+.sec-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 0 8px 14px; margin-left: -14px;
+  border-left: 3px solid var(--bd); transition: border-color 0.2s ease;
+}
+.sec-header.is-on  { border-left-color: var(--p); }
+.sec-lbl     { font-size: 14px; font-weight: 600; color: var(--text-1); margin: 0; line-height: 1.3; }
+.sec-lbl.off { color: var(--text-4); font-weight: 500; }
+.sec-status     { font-size: 11px; font-weight: 600; margin-right: 8px; letter-spacing: .02em; }
+.sec-status.on  { color: var(--p); }
+.sec-status.off { color: var(--text-4); }
+.sec-divider { border: none; border-top: 1px solid var(--bd-sub); margin: 20px 0 16px 0; }
 
-/* Slider row */
+/* Slider */
 .srow { display: flex; justify-content: space-between; align-items: center; margin: 12px 0 2px 0; }
-.slbl { font-size: 13px; color: #64748b; }
-.sval { font-size: 13px; font-weight: 600; color: #0f172a; font-variant-numeric: tabular-nums; }
-.shint { font-size: 11px; color: #94a3b8; margin: -2px 0 4px 0; }
+.slbl { font-size: 13px; color: var(--text-3); font-weight: 400; line-height: 1.5; }
+.sval {
+  font-size: 12px; font-weight: 600; color: var(--p);
+  background: var(--p-surface); border: 1px solid var(--p-border);
+  border-radius: 20px; padding: 2px 10px;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.shint { font-size: 11px; color: var(--text-4); margin: -2px 0 4px 0; line-height: 1.5; }
 div[data-testid="stSlider"] { margin-top: -2px !important; margin-bottom: 0 !important; }
 div[data-testid="stSlider"] p { display: none !important; }
 
-/* Number / select */
-label[data-testid="stWidgetLabel"] { font-size: 11px !important; color: #94a3b8 !important; }
+label[data-testid="stWidgetLabel"] { font-size: 12px !important; color: var(--text-3) !important; }
 div[data-testid="stNumberInput"] input {
-  border-radius: 6px !important; border: 1px solid #e2e8f0 !important; font-size: 13px !important; color: #0f172a !important;
+  border-radius: 8px !important; border: 1px solid var(--bd) !important; font-size: 13px !important;
 }
 div[data-testid="stSelectbox"] > div { font-size: 13px !important; }
 
-/* ── Result area ── */
-.hero {
-  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
-  border-radius: 12px; padding: 24px 28px; margin-bottom: 12px;
+/* Validation indicator */
+.val-ind {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; margin: 6px 0 0 0;
 }
-.hero-lbl { font-size: 11px; font-weight: 500; color: rgba(255,255,255,.5); letter-spacing: .1em; text-transform: uppercase; margin: 0 0 6px 0; }
-.hero-num { font-size: 48px; font-weight: 700; color: #fff; line-height: 1; font-variant-numeric: tabular-nums; margin: 0; }
-.hero-sub { font-size: 13px; color: rgba(255,255,255,.6); margin: 10px 0 0 0; }
-.hero-sub b { color: rgba(255,255,255,.9); font-weight: 600; }
+.val-ind.ok    { background: var(--success-surface); color: #15803d; border: 1px solid var(--success-border); }
+.val-ind.warn  { background: var(--warning-surface); color: #92400e; border: 1px solid var(--warning-border); }
+.val-ind.error { background: var(--danger-surface);  color: #dc2626; border: 1px solid var(--danger-border); }
 
-.kpi-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-.kpi-box { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
-.kpi-lbl   { font-size: 11px; font-weight: 500; color: #94a3b8; letter-spacing: .08em; text-transform: uppercase; margin: 0 0 6px 0; }
-.kpi-val   { font-size: 28px; font-weight: 700; color: #0f172a; font-variant-numeric: tabular-nums; margin: 0; }
-.kpi-val-r { font-size: 28px; font-weight: 700; color: #ef4444; font-variant-numeric: tabular-nums; margin: 0; }
-.kpi-sub   { font-size: 12px; color: #94a3b8; margin: 4px 0 0 0; }
+/* ── Result: Hero ── */
+.hero {
+  background: linear-gradient(135deg, #0c1628 0%, #0f172a 45%, #0d2340 100%);
+  border-radius: 14px; padding: 30px 34px 26px; margin-bottom: 14px;
+  position: relative; overflow: hidden;
+  border: 1px solid rgba(255,255,255,.05);
+}
+.hero::before {
+  content: ''; position: absolute; top: -60px; right: -60px;
+  width: 240px; height: 240px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(43,112,239,.18) 0%, transparent 65%);
+  pointer-events: none;
+}
+.hero::after {
+  content: ''; position: absolute; bottom: -40px; left: 20%;
+  width: 180px; height: 180px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(16,185,129,.10) 0%, transparent 65%);
+  pointer-events: none;
+}
+.hero-lbl {
+  font-size: 10px; font-weight: 600; color: rgba(148,163,184,.7);
+  letter-spacing: .14em; text-transform: uppercase; margin: 0 0 10px 0;
+  display: flex; align-items: center; gap: 8px;
+}
+.hero-lbl::before {
+  content: ''; display: inline-block; width: 16px; height: 2px;
+  background: var(--p); border-radius: 2px;
+}
+.hero-num {
+  font-size: 56px; font-weight: 800; line-height: 1; letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums; margin: 0;
+  background: linear-gradient(130deg, #34d399 0%, #10b981 55%, #059669 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.hero-divider { border: none; border-top: 1px solid rgba(255,255,255,.07); margin: 16px 0 14px 0; }
+.hero-sub {
+  font-size: 13px; color: rgba(148,163,184,.8); margin: 0;
+  display: flex; gap: 20px; flex-wrap: wrap; line-height: 1.6;
+}
+.hero-sub b { color: rgba(226,232,240,.9); font-weight: 600; }
 
-.card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px 22px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
-.card-lbl   { font-size: 11px; font-weight: 500; color: #94a3b8; letter-spacing: .08em; text-transform: uppercase; margin: 0 0 14px 0; }
-.card-title { font-size: 15px; font-weight: 600; color: #0f172a; margin: 0 0 14px 0; }
+/* ── KPI 4-col ── */
+.kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+.kpi-box {
+  background: var(--bg-surface); border: 1px solid var(--bd);
+  border-left: 3px solid var(--p);
+  border-radius: 12px; padding: 20px 18px 18px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.04);
+}
+.kpi-box.k-saving  { border-left-color: var(--success); }
+.kpi-box.k-roi     { border-left-color: var(--p); }
+.kpi-box.k-payback { border-left-color: var(--warning); }
+.kpi-box.k-cost    { border-left-color: var(--neutral); }
 
-/* Channel table */
-.ch-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 8px; }
-.ch-table th { text-align: left; font-size: 10px; font-weight: 500; color: #94a3b8; text-transform: uppercase; letter-spacing: .06em; padding: 0 8px 8px 8px; border-bottom: 1px solid #e2e8f0; }
-.ch-table td { padding: 7px 8px; border-bottom: 1px solid #f8fafc; color: #475569; }
+.kpi-lbl { font-size: 10px; font-weight: 600; color: var(--text-4); letter-spacing: .10em; text-transform: uppercase; margin: 0 0 8px 0; }
+.kpi-val           { font-size: 26px; font-weight: 800; color: var(--text-1); font-variant-numeric: tabular-nums; margin: 0; letter-spacing: -0.015em; line-height: 1.15; }
+.kpi-val.k-saving  { color: var(--success); }
+.kpi-val.k-roi     { color: var(--p); }
+.kpi-val.k-payback { color: var(--warning); }
+.kpi-val.k-cost    { color: var(--neutral); }
+.kpi-sub { font-size: 11px; color: var(--text-4); margin: 5px 0 0 0; line-height: 1.5; }
+
+/* ── Cards ── */
+.card { background: var(--bg-surface); border: 1px solid var(--bd); border-radius: 12px; padding: 22px 24px; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.03); }
+.card-lbl   { font-size: 10px; font-weight: 600; color: var(--text-4); letter-spacing: .10em; text-transform: uppercase; margin: 0 0 12px 0; }
+.card-title { font-size: 17px; font-weight: 600; color: var(--text-1); margin: 0 0 14px 0; line-height: 1.35; }
+
+/* ── Channel table ── */
+.ch-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; margin-bottom: 8px; }
+.ch-table th {
+  text-align: left; font-size: 10px; font-weight: 600; color: var(--text-4);
+  text-transform: uppercase; letter-spacing: .08em;
+  padding: 0 10px 10px 10px; border-bottom: 2px solid var(--bd);
+}
+.ch-table td { padding: 8px 10px; border-bottom: 1px solid var(--bd-sub); color: var(--text-3); line-height: 1.4; }
 .ch-table tr:last-child td { border-bottom: none; }
 .ch-table .num  { text-align: right; font-variant-numeric: tabular-nums; }
-.ch-table .bold { font-weight: 700; color: #0f172a; }
-.ch-highlight td { background: #f0f5ff; color: #2b70ef; font-weight: 600; }
+.ch-table .bold { font-weight: 700; color: var(--text-1); }
+.ch-highlight td { background: var(--p-surface); color: var(--p); font-weight: 600; }
+.ch-highlight td:first-child { border-left: 3px solid var(--p); padding-left: 7px; }
 
-/* Detail rows */
-.dr { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; font-size: 13px; color: #475569; border-bottom: 1px solid #f8fafc; }
-.dr.sep  { border-top: 1px solid #e2e8f0; margin-top: 4px; padding-top: 10px; }
-.dr.bold { font-weight: 700; font-size: 14px; color: #0f172a; }
+/* ── Detail rows ── */
+.dr { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; font-size: 13px; color: var(--text-3); border-bottom: 1px solid var(--bd-sub); line-height: 1.5; }
+.dr.sep  { border-top: 1px solid var(--bd); margin-top: 4px; padding-top: 10px; }
+.dr.bold { font-weight: 700; font-size: 14px; color: var(--text-1); }
 .dr.last { border-bottom: none; }
 .dv   { font-variant-numeric: tabular-nums; white-space: nowrap; }
-.dv-g { color: #059669; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.dv-r { color: #ef4444; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dv-g { color: var(--success); font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 600; }
+.dv-s { color: var(--neutral); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dv-r { color: var(--danger);  font-variant-numeric: tabular-nums; white-space: nowrap; }
 
-/* Spot comparison */
+/* ── Spot comparison ── */
 .spot-grid { display: grid; grid-template-columns: 1fr 32px 1fr; align-items: center; gap: 4px; margin-bottom: 12px; }
-.spot-box { border: 1px solid #f1f5f9; border-radius: 8px; padding: 12px 14px; background: #f8fafc; }
-.spot-box.after { border-color: #c0d4ff; background: #f0f5ff; }
-.spot-tag { font-size: 10px; font-weight: 600; color: #94a3b8; text-transform: uppercase; margin: 0 0 4px 0; }
-.spot-val { font-size: 18px; font-weight: 700; color: #0f172a; font-variant-numeric: tabular-nums; }
-.spot-box.after .spot-val { color: #2b70ef; }
-.spot-note { font-size: 11px; color: #94a3b8; margin: 3px 0 0 0; }
+.spot-box { border: 1px solid var(--bd-sub); border-radius: 10px; padding: 14px 16px; background: var(--bg-page); }
+.spot-box.after { border-color: var(--p-border); background: var(--p-surface); }
+.spot-tag { font-size: 10px; font-weight: 600; color: var(--text-4); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 5px 0; }
+.spot-val { font-size: 20px; font-weight: 700; color: var(--text-1); font-variant-numeric: tabular-nums; }
+.spot-box.after .spot-val { color: var(--p); }
+.spot-note { font-size: 11px; color: var(--text-4); margin: 3px 0 0 0; line-height: 1.5; }
 .arrow-c { text-align: center; color: #cbd5e1; font-size: 20px; }
 
-.save-badge { display: inline-flex; align-items: center; gap: 4px; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; border-radius: 6px; padding: 4px 12px; font-size: 12px; font-weight: 600; }
-.warn { font-size: 11px; color: #78350f; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 8px 12px; margin-top: 12px; }
+/* ── Save badge ── */
+.save-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: linear-gradient(135deg, var(--success-surface) 0%, #d1fae5 100%);
+  color: #15803d; border: 1px solid var(--success-border);
+  border-radius: 8px; padding: 6px 14px; font-size: 13px; font-weight: 700;
+  box-shadow: 0 1px 3px rgba(16,185,129,.15);
+}
+.save-badge::before { content: '↓'; font-weight: 900; }
 
-.stButton > button { background: #0f172a !important; color: #fff !important; border: none !important; border-radius: 6px !important; padding: 8px 20px !important; font-size: 13px !important; font-weight: 500 !important; }
-.stButton > button:hover { background: #334155 !important; }
+/* ── Warn note ── */
+.warn { font-size: 11px; color: #78350f; background: var(--warning-surface); border: 1px solid var(--warning-border); border-radius: 8px; padding: 8px 12px; margin-top: 12px; line-height: 1.6; }
 
-/* Print */
+/* ── Saving preview (input tab) ── */
+.saving-preview {
+  margin-top: 20px; padding: 18px 20px;
+  background: var(--p-surface); border: 1px solid var(--p-border); border-radius: 12px;
+}
+.saving-preview-lbl { font-size: 10px; font-weight: 600; color: var(--text-4); letter-spacing: .10em; text-transform: uppercase; margin: 0 0 6px 0; }
+.saving-preview-num { font-size: 30px; font-weight: 800; color: var(--p); margin: 0; font-variant-numeric: tabular-nums; letter-spacing: -0.015em; }
+.saving-preview-hint { font-size: 12px; color: var(--text-4); margin: 6px 0 0 0; line-height: 1.5; }
+
+/* ── Button ── */
+.stButton > button {
+  background: var(--p) !important; color: #fff !important;
+  border: none !important; border-radius: 8px !important;
+  padding: 9px 22px !important; font-size: 13px !important; font-weight: 500 !important;
+  transition: all 0.15s ease !important;
+}
+.stButton > button:hover {
+  background: var(--p-hover) !important;
+  box-shadow: 0 4px 12px rgba(43,112,239,.3) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ── Print ── */
 .print-header { display: none; }
 @media print {
   [data-testid="stSidebar"] { display: none !important; }
   .stApp { background: white !important; }
   .block-container { padding: 0 !important; max-width: 100% !important; }
   .print-header { display: block !important; margin-bottom: 20px; }
-  .ph-title { font-size: 11px; color: #94a3b8; letter-spacing: .08em; text-transform: uppercase; margin: 0; }
-  .ph-name  { font-size: 22px; font-weight: 700; color: #0f172a; margin: 4px 0 0 0; }
-  .ph-line  { border: none; border-top: 2px solid #2b70ef; margin: 10px 0 0 0; }
+  .ph-title { font-size: 11px; color: var(--text-4); letter-spacing: .08em; text-transform: uppercase; margin: 0; }
+  .ph-name  { font-size: 22px; font-weight: 700; color: var(--text-1); margin: 4px 0 0 0; }
+  .ph-line  { border: none; border-top: 2px solid var(--p); margin: 10px 0 0 0; }
   .hero { background: #0f172a !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .hero-num { -webkit-text-fill-color: #34d399 !important; background: none !important; }
   @page { margin: 12mm 15mm; size: A4; }
 }
 </style>
@@ -193,8 +361,10 @@ div[data-testid="stSelectbox"] > div { font-size: 13px !important; }
 def sldr(label, key, mn, mx, step, fmt_fn, hint=""):
     v = st.session_state.get(key, mn)
     st.markdown(
-        f'<div class="srow"><span class="slbl">{label}</span>'
-        f'<span class="sval">{fmt_fn(v)}</span></div>',
+        f'<div class="srow">'
+        f'<span class="slbl">{label}</span>'
+        f'<span class="sval">{fmt_fn(v)}</span>'
+        f'</div>',
         unsafe_allow_html=True,
     )
     if hint:
@@ -211,9 +381,20 @@ def dr(label, val, cls="dv", bold=False, sep=False, last=False):
     return f'<div class="{rc}"><span>{label}</span><span class="{cls}">{val}</span></div>'
 
 def section_header(sec, label):
+    is_on = st.session_state.get(f'{sec}_on', False)
+    row_cls  = f"sec-header {'is-on' if is_on else ''}"
+    lbl_cls  = f"sec-lbl{'' if is_on else ' off'}"
+    stat_cls = f"sec-status {'on' if is_on else 'off'}"
+    stat_txt = "有効" if is_on else "無効"
     c1, c2 = st.columns([5, 1])
     with c1:
-        st.markdown(f'<p class="sec-lbl">{label}</p>', unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="{row_cls}">'
+            f'<p class="{lbl_cls}">{label}</p>'
+            f'<span class="{stat_cls}">{stat_txt}</span>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
     with c2:
         st.toggle('', key=f'{sec}_on', label_visibility='collapsed')
 
@@ -233,23 +414,35 @@ def render_ch_editor(sec, hires):
         use_container_width=True,
     )
     edited = edited.fillna({'チャネル名': '', '構成比(%)': 0, '採用単価(円)': 0})
-    edited['構成比(%)']    = edited['構成比(%)'].astype(int)
-    edited['採用単価(円)'] = edited['採用単価(円)'].astype(int)
-    edited['採用人数']       = (edited['構成比(%)'] / 100 * hires).round().astype(int)
+    edited['構成比(%)']      = edited['構成比(%)'].astype(int)
+    edited['採用単価(円)']   = edited['採用単価(円)'].astype(int)
+    edited['採用人数']        = (edited['構成比(%)'] / 100 * hires).round().astype(int)
     edited['年間コスト(万円)'] = ((edited['採用人数'] * edited['採用単価(円)']) / 10_000).round().astype(int)
 
     total_ratio = int(edited['構成比(%)'].sum())
+    remaining   = 100 - total_ratio
     if total_ratio > 100:
-        st.markdown(f'<p style="color:#ef4444;font-size:12px;margin:4px 0">⚠️ 合計 {total_ratio}%（100%を超えています）</p>', unsafe_allow_html=True)
+        cls, icon, msg = "error", "✕", f"合計 {total_ratio}%（{total_ratio-100}% 超過しています）"
+    elif total_ratio == 100:
+        cls, icon, msg = "ok",    "✓", "合計 100%（OK）"
     else:
-        color = "#059669" if total_ratio == 100 else "#94a3b8"
-        st.markdown(f'<p style="color:{color};font-size:11px;margin:4px 0">合計 {total_ratio}%</p>', unsafe_allow_html=True)
+        cls, icon, msg = "warn",  "○", f"合計 {total_ratio}%（残り {remaining}%）"
+    st.markdown(
+        f'<div class="val-ind {cls}"><span>{icon}</span><span>{msg}</span></div>',
+        unsafe_allow_html=True,
+    )
     return edited
 
-# ══ Sidebar nav ════════════════════════════════════════════════
+# ══ Sidebar ════════════════════════════════════════════════════
 with st.sidebar:
-    st.markdown('<p class="nav-logo">TUNAGアルムナイ</p>', unsafe_allow_html=True)
-    st.markdown('<p class="nav-sub">採用費シミュレーター</p>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="nav-brand">'
+        '<div class="nav-brand-icon">T</div>'
+        '<div><p class="nav-logo">TUNAGアルムナイ</p>'
+        '<p class="nav-sub">採用費シミュレーター</p></div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
     active_tab = st.radio(
         "",
         ["入力", "結果"],
@@ -262,7 +455,6 @@ if active_tab == "入力":
     st.markdown('<p class="pg-title">採用費シミュレーター</p>', unsafe_allow_html=True)
     st.markdown('<p class="pg-sub">採用コスト・離職データを入力してください</p>', unsafe_allow_html=True)
 
-    # 社名
     st.markdown('<p class="company-lbl">顧客企業名</p>', unsafe_allow_html=True)
     company_name = st.text_input(
         "", placeholder="例）〇〇株式会社",
@@ -270,7 +462,6 @@ if active_tab == "入力":
     )
     st.session_state['company_name'] = company_name
 
-    # ── 採用セクション ──
     results_cache = {}
     for sec, meta in SECTIONS.items():
         st.markdown('<hr class="sec-divider">', unsafe_allow_html=True)
@@ -279,11 +470,11 @@ if active_tab == "入力":
         if not st.session_state.get(f'{sec}_on', False):
             continue
 
-        max_h = 5000 if sec == 'part' else 500
-        step_h = 50  if sec == 'part' else 10
+        max_h  = 5000 if sec == 'part' else 500
+        step_h = 50   if sec == 'part' else 10
         hires = sldr('年間採用数', f'{sec}_hires', 0, max_h, step_h, lambda v: f'{v:,}名')
 
-        edited = render_ch_editor(sec, hires)
+        edited       = render_ch_editor(sec, hires)
         current_cost = int((edited['採用人数'] * edited['採用単価(円)']).sum())
 
         st.markdown('<hr class="sec-divider" style="margin:14px 0">', unsafe_allow_html=True)
@@ -299,37 +490,33 @@ if active_tab == "入力":
         ch_names = [r for r in edited['チャネル名'].tolist() if str(r).strip()]
         if not ch_names:
             ch_names = ['（チャネルなし）']
-        replace_ch = st.selectbox('復帰者が代替するチャネル', options=ch_names, key=f'{sec}_replace_ch')
-        matched = edited[edited['チャネル名'] == replace_ch]
+        replace_ch   = st.selectbox('復帰者が代替するチャネル', options=ch_names, key=f'{sec}_replace_ch')
+        matched      = edited[edited['チャネル名'] == replace_ch]
         replace_unit = int(matched.iloc[0]['採用単価(円)']) if not matched.empty else 0
 
         alumni_returns = leavers * reg_rate / 100 * ret_rate / 100
         saving = alumni_returns * replace_unit
 
         results_cache[sec] = {
-            'label': meta['label'],
-            'hires': hires,
-            'current_cost': current_cost,
+            'label': meta['label'], 'hires': hires, 'current_cost': current_cost,
             'ch_data': edited.to_dict('records'),
-            'alumni_returns': alumni_returns,
-            'replace_ch': replace_ch,
-            'replace_unit': replace_unit,
-            'saving': saving,
+            'alumni_returns': alumni_returns, 'replace_ch': replace_ch,
+            'replace_unit': replace_unit, 'saving': saving,
         }
 
     st.session_state['results_cache'] = results_cache
 
-    # ── スポットワーク ──
+    # スポットワーク
     st.markdown('<hr class="sec-divider">', unsafe_allow_html=True)
     section_header('spot', 'スポットワーク手数料削減（タイミー代替）')
 
     spot_cache = {}
     if st.session_state.get('spot_on', False):
         st.markdown('<p class="field-lbl">現状（タイミー利用）</p>', unsafe_allow_html=True)
-        workers    = sldr('月間スポットワーカー数', 'spot_workers',    0, 1000, 10, lambda v: f'{v:,}人')
-        wage       = sldr('平均時給',               'spot_wage',     800, 3000, 50, lambda v: f'¥{v:,}')
-        hours      = sldr('平均勤務時間 / 件',       'spot_hours',     1,   12,  1, lambda v: f'{v}h')
-        timee_rate = sldr('タイミー手数料率',         'spot_timee_rate', 5,  50,  1, lambda v: f'{v}%')
+        workers    = sldr('月間スポットワーカー数', 'spot_workers',     0, 1000, 10, lambda v: f'{v:,}人')
+        wage       = sldr('平均時給',               'spot_wage',      800, 3000, 50, lambda v: f'¥{v:,}')
+        hours      = sldr('平均勤務時間 / 件',       'spot_hours',      1,   12,  1, lambda v: f'{v}h')
+        timee_rate = sldr('タイミー手数料率',         'spot_timee_rate', 5,   50,  1, lambda v: f'{v}%')
 
         st.markdown('<hr class="sec-divider" style="margin:14px 0">', unsafe_allow_html=True)
         st.markdown('<p class="field-lbl">TUNAGアルムナイでの充足</p>', unsafe_allow_html=True)
@@ -339,37 +526,37 @@ if active_tab == "入力":
         tunag_workers  = workers * fulfill_rate / 100
         timee_workers  = workers - tunag_workers
         current_annual = workers * wage * hours * timee_rate / 100 * 12
-        new_annual     = (tunag_workers * wage * hours * 0.10 + timee_workers * wage * hours * timee_rate / 100) * 12
+        new_annual     = (tunag_workers * wage * hours * 0.10
+                          + timee_workers * wage * hours * timee_rate / 100) * 12
         spot_saving    = current_annual - new_annual
         spot_cache = {
-            'workers': workers, 'wage': wage, 'hours': hours,
-            'timee_rate': timee_rate, 'fulfill_rate': fulfill_rate,
-            'tunag_workers': tunag_workers, 'timee_workers': timee_workers,
-            'current_annual': current_annual, 'new_annual': new_annual,
-            'saving': spot_saving,
+            'workers': workers, 'wage': wage, 'hours': hours, 'timee_rate': timee_rate,
+            'fulfill_rate': fulfill_rate, 'tunag_workers': tunag_workers,
+            'timee_workers': timee_workers, 'current_annual': current_annual,
+            'new_annual': new_annual, 'saving': spot_saving,
         }
 
     st.session_state['spot_cache'] = spot_cache
 
-    # ── TUNAG利用料 ──
+    # TUNAG利用料
     st.markdown('<hr class="sec-divider">', unsafe_allow_html=True)
     with st.expander('詳細設定（TUNAG利用料）'):
         c1, c2 = st.columns(2)
         with c1:
-            st.number_input('初期費用（円）',    min_value=0, value=500_000, step=50_000, format='%d', key='initial_fee')
+            st.number_input('初期費用（円）',   min_value=0, value=500_000, step=50_000, format='%d', key='initial_fee')
         with c2:
-            st.number_input('月額利用料（円）',  min_value=0, value=200_000, step=10_000, format='%d', key='monthly_fee')
+            st.number_input('月額利用料（円）', min_value=0, value=200_000, step=10_000, format='%d', key='monthly_fee')
 
-    # 小計プレビュー（入力タブ下部）
+    # 小計プレビュー
     recruit_saving = sum(r['saving'] for r in results_cache.values())
     spot_saving    = spot_cache.get('saving', 0)
     total_saving   = recruit_saving + spot_saving
     if total_saving > 0:
         st.markdown(f"""
-        <div style="margin-top:20px;padding:14px 18px;background:#f0f5ff;border:1px solid #c0d4ff;border-radius:10px">
-          <p style="font-size:11px;color:#94a3b8;margin:0 0 4px 0;text-transform:uppercase;letter-spacing:.08em">推計 年間削減効果</p>
-          <p style="font-size:28px;font-weight:700;color:#2b70ef;margin:0;font-variant-numeric:tabular-nums">約 {man(total_saving)}</p>
-          <p style="font-size:12px;color:#94a3b8;margin:6px 0 0 0">「結果」タブで詳細を確認できます</p>
+        <div class="saving-preview">
+          <p class="saving-preview-lbl">推計 年間削減効果</p>
+          <p class="saving-preview-num">約 {man(total_saving)}</p>
+          <p class="saving-preview-hint">「結果」タブで詳細・ROI・回収期間を確認できます</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -378,9 +565,8 @@ else:
     results_cache = st.session_state.get('results_cache', {})
     spot_cache    = st.session_state.get('spot_cache', {})
     display_name  = st.session_state.get('company_name', '').strip() or '貴社'
-
-    initial_fee = st.session_state.get('initial_fee', 500_000)
-    monthly_fee = st.session_state.get('monthly_fee', 200_000)
+    initial_fee   = st.session_state.get('initial_fee', 500_000)
+    monthly_fee   = st.session_state.get('monthly_fee', 200_000)
 
     recruit_saving = sum(r['saving'] for r in results_cache.values())
     spot_saving    = spot_cache.get('saving', 0)
@@ -394,7 +580,7 @@ else:
     monthly_sav    = total_saving / 12
     pb_str         = f'{pb_months:.0f}ヶ月' if pb_months != float('inf') else '—'
 
-    # Print header (visible only in PDF)
+    # Print header
     st.markdown(f"""
     <div class="print-header">
       <p class="ph-title">TUNAGアルムナイ 費用対効果試算書</p>
@@ -410,37 +596,53 @@ else:
         st.info("まず「入力」タブでデータを入力してください。")
     else:
         # ── Hero ──
-        sub_parts = [f'毎月 <b>約{man(monthly_sav)}</b> の節約']
-        if pb_months != float('inf'):
-            sub_parts.append(f'初期費用は <b>{pb_str}</b> で回収')
+        hero_sub_parts = []
+        if recruit_saving > 0:
+            hero_sub_parts.append(f'採用費削減 <b>{man(recruit_saving)}</b>')
+        if spot_saving > 0:
+            hero_sub_parts.append(f'スポット削減 <b>{man(spot_saving)}</b>')
+        hero_sub_parts.append(f'TUNAG費 <b>{man(tunag_y1)}</b>')
+
         st.markdown(f"""
         <div class="hero">
           <p class="hero-lbl">年間コスト削減効果（合計）</p>
-          <p class="hero-num">約&thinsp;{man(total_saving)}</p>
-          <p class="hero-sub">{'　/　'.join(sub_parts)}</p>
+          <p class="hero-num">約 {man(total_saving)}</p>
+          <hr class="hero-divider">
+          <div class="hero-sub">{'&emsp;'.join(hero_sub_parts)}</div>
         </div>
         """, unsafe_allow_html=True)
 
-        # ── KPI ──
-        roi_cls = 'kpi-val' if roi >= 1 else 'kpi-val-r'
+        # ── KPI 4-column ──
+        roi_cls = 'kpi-val k-roi'
+        pb_cls  = 'kpi-val k-payback'
         st.markdown(f"""
         <div class="kpi-row">
-          <div class="kpi-box">
-            <p class="kpi-lbl">ROI（2年目以降）</p>
-            <p class="{roi_cls}">{roi:.1f}倍</p>
-            <p class="kpi-sub">TUNAG費用1円あたり {roi:.1f}円の削減</p>
+          <div class="kpi-box k-saving">
+            <p class="kpi-lbl">年間削減効果</p>
+            <p class="kpi-val k-saving">{man(total_saving)}</p>
+            <p class="kpi-sub">採用費＋スポット手数料</p>
           </div>
-          <div class="kpi-box">
+          <div class="kpi-box k-roi">
+            <p class="kpi-lbl">ROI（2年目以降）</p>
+            <p class="{roi_cls}">{roi:.1f}x</p>
+            <p class="kpi-sub">TUNAG費1円あたり {roi:.1f}円の削減</p>
+          </div>
+          <div class="kpi-box k-payback">
             <p class="kpi-lbl">初期費用回収期間</p>
-            <p class="kpi-val">{pb_str}</p>
+            <p class="{pb_cls}">{pb_str}</p>
             <p class="kpi-sub">月次削減額に基づく試算</p>
+          </div>
+          <div class="kpi-box k-cost">
+            <p class="kpi-lbl">TUNAG利用料（初年度）</p>
+            <p class="kpi-val k-cost">{man(tunag_y1)}</p>
+            <p class="kpi-sub">月額 {man(monthly_fee)}×12 ＋ 初期費用</p>
           </div>
         </div>
         """, unsafe_allow_html=True)
 
         # ── セクション別チャネル表 ──
         for sec, r in results_cache.items():
-            edited = pd.DataFrame(r['ch_data'])
+            edited  = pd.DataFrame(r['ch_data'])
             ch_rows = ''
             for _, row in edited.iterrows():
                 name = str(row['チャネル名']).strip()
@@ -448,14 +650,14 @@ else:
                     continue
                 is_replace = (name == r['replace_ch'])
                 tr_cls = ' class="ch-highlight"' if is_replace else ''
-                cost_man = f"{row['年間コスト(万円)']:,}万円"
+                badge  = '&nbsp;<span style="font-size:9px;font-weight:700;color:var(--p);background:var(--p-surface);border:1px solid var(--p-border);border-radius:4px;padding:1px 5px;letter-spacing:.03em">代替</span>' if is_replace else ''
                 ch_rows += f"""
                 <tr{tr_cls}>
-                  <td>{name}{'&nbsp;<span style="font-size:10px;color:#2b70ef">★代替</span>' if is_replace else ''}</td>
+                  <td>{name}{badge}</td>
                   <td class="num">{row['構成比(%)']:.0f}%</td>
                   <td class="num">{row['採用人数']:,}名</td>
                   <td class="num">¥{row['採用単価(円)']:,}</td>
-                  <td class="num bold">{cost_man}</td>
+                  <td class="num bold">{row['年間コスト(万円)']:,}万円</td>
                 </tr>"""
 
             alumni_n = r['alumni_returns']
@@ -475,10 +677,9 @@ else:
                 </thead>
                 <tbody>{ch_rows}</tbody>
               </table>
-              <div style="margin-top:10px;padding-top:10px;border-top:1px solid #f1f5f9">
-                <span style="font-size:12px;color:#64748b">アルムナイ復職: <b style="color:#0f172a">{alumni_n:.1f}名/年</b>
-                &nbsp;×&nbsp;{r['replace_ch']}単価 ¥{r['replace_unit']:,}</span>
-                <span class="save-badge" style="margin-left:10px">削減　{man(save)} / 年</span>
+              <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--bd-sub);display:flex;align-items:center;flex-wrap:wrap;gap:10px">
+                <span style="font-size:12px;color:var(--text-3)">アルムナイ復職: <b style="color:var(--text-1)">{alumni_n:.1f}名/年</b>&nbsp;×&nbsp;{r['replace_ch']}単価 ¥{r['replace_unit']:,}</span>
+                <span class="save-badge">削減　{man(save)} / 年</span>
               </div>
             </div>
             """, unsafe_allow_html=True)
@@ -521,8 +722,8 @@ else:
           {sec_rows}
           {spot_row}
           {dr('合計削減効果', '＋' + man(total_saving), 'dv-g', bold=True, sep=True)}
-          {dr('TUNAG年間費用（初年度: 初期＋月額×12）', '−' + man(tunag_y1), 'dv-r', sep=True)}
-          {dr('TUNAG年間費用（2年目以降: 月額×12）',   '−' + man(tunag_y2), 'dv-r')}
+          {dr('TUNAG年間費用（初年度: 初期＋月額×12）', '−' + man(tunag_y1), 'dv-s', sep=True)}
+          {dr('TUNAG年間費用（2年目以降: 月額×12）',   '−' + man(tunag_y2), 'dv-s')}
           {dr('純削減額（初年度）',    man(abs(net_y1)), s1c, bold=True, sep=True)}
           {dr('純削減額（2年目以降）', man(abs(net_y2)), s2c, bold=True, last=True)}
           <div class="warn">※ アルムナイ採用単価はゼロで試算（TUNAGアルムナイ経由の1名あたり追加コストは発生しないため）。登録率・復職率はTUNAGアルムナイ導入企業の実績値に基づく参考値です。</div>
