@@ -42,16 +42,16 @@ footer, #MainMenu, header[data-testid="stHeader"],
 
 /* ── Section label inside card ── */
 .sec-lbl {
-  font-size:11px; font-weight:600; color:#94a3b8;
-  letter-spacing:.1em; text-transform:uppercase; margin:0 0 14px 0;
+  font-size:14px; font-weight:600; color:#0f172a;
+  margin:0 0 10px 0;
   display:flex; align-items:center; gap:8px;
 }
 .sec-divider { margin:20px 0 16px 0; border:none; border-top:1px solid #f1f5f9; }
 
 /* ── 社名入力 ── */
 .company-lbl {
-  font-size:11px; font-weight:600; color:#2b70ef;
-  letter-spacing:.08em; text-transform:uppercase; margin:0 0 6px 0;
+  font-size:12px; font-weight:500; color:#64748b;
+  margin:0 0 6px 0;
 }
 div[data-testid="stTextInput"] input {
   border-radius:8px !important; border:1.5px solid #c0d4ff !important;
@@ -66,16 +66,18 @@ div[data-testid="stTextInput"] input:focus {
 
 /* ── Slider label row ── */
 .srow {
-  display:flex; justify-content:space-between; align-items:baseline;
+  display:flex; justify-content:space-between; align-items:center;
   margin:16px 0 2px 0;
 }
-.slbl { font-size:13px; color:#334155; font-weight:500; }
-.sval { font-size:22px; font-weight:700; color:#2b70ef; font-variant-numeric:tabular-nums; }
+.slbl { font-size:13px; color:#64748b; font-weight:400; }
+.sval { font-size:14px; font-weight:600; color:#0f172a; font-variant-numeric:tabular-nums; }
 .shint { font-size:11px; color:#94a3b8; margin:-2px 0 4px 0; }
 
 /* ── Sliders ── */
 div[data-testid="stSlider"] { margin-top:-2px !important; margin-bottom:0 !important; }
-div[data-testid="stSlider"] > div > div > div { background:#2b70ef !important; }
+div[data-testid="stSlider"] > div > div > div[data-testid="stSliderThumb"] { background:#2b70ef !important; }
+div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child { background:#e2e8f0 !important; }
+div[data-testid="stSlider"] [data-baseweb="slider"] > div:nth-child(2) { background:#2b70ef !important; }
 div[data-testid="stSlider"] p { display:none !important; }
 
 /* ── Number input ── */
