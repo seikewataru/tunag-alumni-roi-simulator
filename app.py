@@ -56,41 +56,43 @@ st.session_state.setdefault('spot_cache', {})
 # ══ CSS ════════════════════════════════════════════════════════
 st.markdown("""
 <style>
-/* ── Design tokens (melta design system + 5 designers) ── */
+/* ── Design tokens (melta design system) ── */
 :root {
   --p:          #2b70ef;   /* primary-500 */
-  --p-hover:    #1d5fd4;   /* primary-600 */
+  --p-hover:    #1a40b5;   /* primary-700 */
   --p-surface:  #f0f5ff;   /* primary-50  */
   --p-border:   #c0d4ff;   /* primary-200 */
 
-  --success:         #059669;
-  --success-surface: #ecfdf5;
-  --success-border:  #a7f3d0;
-  --warning:         #d97706;
-  --warning-surface: #fffbeb;
-  --warning-border:  #fde68a;
-  --danger:          #ef4444;
-  --danger-surface:  #fef2f2;
-  --danger-border:   #fecaca;
-  --neutral:         #64748b;
+  --success:         #059669;   /* emerald-600 */
+  --success-surface: #ecfdf5;   /* emerald-50  */
+  --success-border:  #a7f3d0;   /* emerald-200 */
+  --warning:         #d97706;   /* amber-600   */
+  --warning-surface: #fffbeb;   /* amber-50    */
+  --warning-border:  #fde68a;   /* amber-200   */
+  --danger:          #ef4444;   /* red-500     */
+  --danger-surface:  #fef2f2;   /* red-50      */
+  --danger-border:   #fecaca;   /* red-200     */
+  --neutral:         #64748b;   /* slate-500   */
 
-  --text-1: #0f172a;   /* headings */
-  --text-2: #3d4b5f;   /* body (melta) */
-  --text-3: #64748b;   /* secondary */
-  --text-4: #94a3b8;   /* muted / labels */
+  --text-1: #0f172a;   /* slate-900 / headings */
+  --text-2: #3d4b5f;   /* text-body            */
+  --text-3: #64748b;   /* slate-500 / secondary */
+  --text-4: #94a3b8;   /* slate-400 / muted     */
 
-  --bg-page:    #f8fafc;
-  --bg-surface: #ffffff;
-  --bd:         #e2e8f0;
-  --bd-sub:     #f1f5f9;
+  --bg-page:    #f9fafb;   /* gray-50  ← melta bg-background-primary */
+  --bg-surface: #ffffff;   /* white    */
+  --bd:         #e2e8f0;   /* slate-200 */
+  --bd-sub:     #cbd5e1;   /* slate-300 ← セカンダリボーダー */
 }
 
 /* ── Global ── */
 .stApp { background: var(--bg-page); }
-.block-container { padding: 28px 32px 48px !important; max-width: 1100px !important; }
+.block-container { padding: 28px 32px 48px !important; max-width: 1280px !important; }
 body {
   font-family: "Inter", "Noto Sans JP", "Hiragino Sans", sans-serif;
-  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  font-size: 18px;
+  line-height: 2.0;
+  letter-spacing: 0.02em;
   -webkit-font-smoothing: antialiased;
   color: var(--text-2);
 }
@@ -103,15 +105,15 @@ footer, #MainMenu, header[data-testid="stHeader"],
 [data-testid="stSidebar"] {
   background: var(--bg-surface) !important;
   border-right: 1px solid var(--bd) !important;
-  min-width: 220px !important;
-  max-width: 240px !important;
+  min-width: 256px !important;
+  max-width: 256px !important;
 }
 [data-testid="stSidebarContent"] { padding: 24px 12px 20px !important; }
 
 .nav-brand {
   display: flex; align-items: center; gap: 10px;
   padding: 0 8px 18px 8px; margin-bottom: 12px;
-  border-bottom: 1px solid var(--bd-sub);
+  border-bottom: 1px solid var(--bd);
 }
 .nav-brand-icon {
   width: 30px; height: 30px; border-radius: 8px;
@@ -121,20 +123,20 @@ footer, #MainMenu, header[data-testid="stHeader"],
   flex-shrink: 0;
 }
 .nav-logo { font-size: 13px; font-weight: 600; color: var(--text-1); margin: 0; line-height: 1.3; }
-.nav-sub  { font-size: 11px; color: var(--text-4); margin: 0; line-height: 1.4; }
+.nav-sub  { font-size: 12px; color: var(--text-4); margin: 0; line-height: 1.4; }
 
 /* Radio → nav item */
 [data-testid="stSidebar"] [data-testid="stRadio"] label {
   display: flex !important; align-items: center !important;
-  width: 100% !important; padding: 8px 12px !important;
+  width: 100% !important; padding: 10px 12px !important;
   border-radius: 8px !important; cursor: pointer !important;
-  transition: background 120ms ease, color 120ms ease !important;
-  color: var(--text-3) !important; font-size: 13px !important;
+  transition: background 150ms ease, color 150ms ease !important;
+  color: var(--text-2) !important; font-size: 13px !important;
   font-weight: 500 !important; margin-bottom: 2px !important;
-  background: transparent !important; border: 1px solid transparent !important;
+  background: transparent !important;
   line-height: 1 !important;
 }
-[data-testid="stSidebar"] [data-testid="stRadio"] label > div:first-child { display: none !important; }
+
 [data-testid="stSidebar"] [data-testid="stRadio"] label p {
   color: inherit !important; font-size: 13px !important; font-weight: inherit !important; margin: 0 !important;
 }
@@ -143,12 +145,12 @@ footer, #MainMenu, header[data-testid="stHeader"],
 }
 [data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked) {
   background: var(--p-surface) !important; color: var(--p) !important;
-  font-weight: 600 !important; border-color: var(--p-border) !important;
+  font-weight: 600 !important;
 }
 
 /* ── Page title ── */
-.pg-title { font-size: 28px; font-weight: 700; color: var(--text-1); margin: 0 0 4px 0; letter-spacing: -0.015em; line-height: 1.25; }
-.pg-sub   { font-size: 14px; color: var(--text-4); margin: 0 0 20px 0; line-height: 1.6; }
+.pg-title { font-size: 32px; font-weight: 700; color: var(--text-1); margin: 0 0 4px 0; letter-spacing: 0; line-height: 1.4; }
+.pg-sub   { font-size: 14px; color: var(--text-4); margin: 0 0 20px 0; line-height: 1.4; }
 
 /* ── Input form ── */
 .company-lbl { font-size: 12px; font-weight: 500; color: var(--text-2); margin: 0 0 6px 0; }
@@ -167,31 +169,29 @@ div[data-testid="stTextInput"] input:focus {
 /* Section header with ON/OFF state */
 .sec-header {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 10px 0 8px 14px; margin-left: -14px;
-  border-left: 3px solid var(--bd); transition: border-color 0.2s ease;
+  padding: 10px 0 8px 0;
 }
-.sec-header.is-on  { border-left-color: var(--p); }
 .sec-lbl     { font-size: 14px; font-weight: 600; color: var(--text-1); margin: 0; line-height: 1.3; }
 .sec-lbl.off { color: var(--text-4); font-weight: 500; }
-.sec-status     { font-size: 11px; font-weight: 600; margin-right: 8px; letter-spacing: .02em; }
+.sec-status     { font-size: 12px; font-weight: 600; margin-right: 8px; letter-spacing: 0.01em; }
 .sec-status.on  { color: var(--p); }
 .sec-status.off { color: var(--text-4); }
-.sec-divider { border: none; border-top: 1px solid var(--bd-sub); margin: 20px 0 16px 0; }
+.sec-divider { border: none; border-top: 1px solid var(--bd); margin: 20px 0 16px 0; }
 
 /* Slider */
 .srow { display: flex; justify-content: space-between; align-items: center; margin: 12px 0 2px 0; }
-.slbl { font-size: 13px; color: var(--text-3); font-weight: 400; line-height: 1.5; }
+.slbl { font-size: 13px; color: var(--text-3); font-weight: 500; line-height: 1.5; }
 .sval {
   font-size: 12px; font-weight: 600; color: var(--p);
   background: var(--p-surface); border: 1px solid var(--p-border);
   border-radius: 20px; padding: 2px 10px;
   font-variant-numeric: tabular-nums; white-space: nowrap;
 }
-.shint { font-size: 11px; color: var(--text-4); margin: -2px 0 4px 0; line-height: 1.5; }
+.shint { font-size: 12px; color: var(--text-4); margin: -2px 0 4px 0; line-height: 1.5; }
 div[data-testid="stSlider"] { margin-top: -2px !important; margin-bottom: 0 !important; }
 div[data-testid="stSlider"] p { display: none !important; }
 
-label[data-testid="stWidgetLabel"] { font-size: 12px !important; color: var(--text-3) !important; }
+label[data-testid="stWidgetLabel"] { font-size: 12px !important; font-weight: 500 !important; color: var(--text-3) !important; }
 div[data-testid="stNumberInput"] input {
   border-radius: 8px !important; border: 1px solid var(--bd) !important; font-size: 13px !important;
 }
@@ -200,34 +200,21 @@ div[data-testid="stSelectbox"] > div { font-size: 13px !important; }
 /* Validation indicator */
 .val-ind {
   display: flex; align-items: center; gap: 6px;
-  padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; margin: 6px 0 0 0;
+  padding: 5px 10px; border-radius: 8px; font-size: 12px; font-weight: 500; margin: 6px 0 0 0;
 }
 .val-ind.ok    { background: var(--success-surface); color: #15803d; border: 1px solid var(--success-border); }
-.val-ind.warn  { background: var(--warning-surface); color: #92400e; border: 1px solid var(--warning-border); }
+.val-ind.warn  { background: var(--warning-surface); color: #78350f; border: 1px solid var(--warning-border); }
 .val-ind.error { background: var(--danger-surface);  color: #dc2626; border: 1px solid var(--danger-border); }
 
 /* ── Result: Hero ── */
 .hero {
-  background: linear-gradient(135deg, #0c1628 0%, #0f172a 45%, #0d2340 100%);
-  border-radius: 14px; padding: 30px 34px 26px; margin-bottom: 14px;
-  position: relative; overflow: hidden;
-  border: 1px solid rgba(255,255,255,.05);
-}
-.hero::before {
-  content: ''; position: absolute; top: -60px; right: -60px;
-  width: 240px; height: 240px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(43,112,239,.18) 0%, transparent 65%);
-  pointer-events: none;
-}
-.hero::after {
-  content: ''; position: absolute; bottom: -40px; left: 20%;
-  width: 180px; height: 180px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(16,185,129,.10) 0%, transparent 65%);
-  pointer-events: none;
+  background: #0f172a;
+  border-radius: 16px; padding: 30px 34px 26px; margin-bottom: 14px;
+  border: 1px solid rgba(255,255,255,.08);
 }
 .hero-lbl {
   font-size: 10px; font-weight: 600; color: rgba(148,163,184,.7);
-  letter-spacing: .14em; text-transform: uppercase; margin: 0 0 10px 0;
+  letter-spacing: .08em; text-transform: uppercase; margin: 0 0 10px 0;
   display: flex; align-items: center; gap: 8px;
 }
 .hero-lbl::before {
@@ -235,10 +222,9 @@ div[data-testid="stSelectbox"] > div { font-size: 13px !important; }
   background: var(--p); border-radius: 2px;
 }
 .hero-num {
-  font-size: 56px; font-weight: 800; line-height: 1; letter-spacing: -0.025em;
+  font-size: 56px; font-weight: 800; line-height: 1; letter-spacing: 0;
   font-variant-numeric: tabular-nums; margin: 0;
-  background: linear-gradient(130deg, #34d399 0%, #10b981 55%, #059669 100%);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  color: #34d399;
 }
 .hero-divider { border: none; border-top: 1px solid rgba(255,255,255,.07); margin: 16px 0 14px 0; }
 .hero-sub {
@@ -251,44 +237,38 @@ div[data-testid="stSelectbox"] > div { font-size: 13px !important; }
 .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
 .kpi-box {
   background: var(--bg-surface); border: 1px solid var(--bd);
-  border-left: 3px solid var(--p);
-  border-radius: 12px; padding: 20px 18px 18px;
-  box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.04);
+  border-radius: 16px; padding: 20px 18px 18px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.05);
 }
-.kpi-box.k-saving  { border-left-color: var(--success); }
-.kpi-box.k-roi     { border-left-color: var(--p); }
-.kpi-box.k-payback { border-left-color: var(--warning); }
-.kpi-box.k-cost    { border-left-color: var(--neutral); }
 
-.kpi-lbl { font-size: 10px; font-weight: 600; color: var(--text-4); letter-spacing: .10em; text-transform: uppercase; margin: 0 0 8px 0; }
-.kpi-val           { font-size: 26px; font-weight: 800; color: var(--text-1); font-variant-numeric: tabular-nums; margin: 0; letter-spacing: -0.015em; line-height: 1.15; }
+.kpi-lbl { font-size: 10px; font-weight: 600; color: var(--text-4); letter-spacing: .08em; text-transform: uppercase; margin: 0 0 8px 0; }
+.kpi-val           { font-size: 26px; font-weight: 800; color: var(--text-1); font-variant-numeric: tabular-nums; margin: 0; letter-spacing: 0; line-height: 1.15; }
 .kpi-val.k-saving  { color: var(--success); }
 .kpi-val.k-roi     { color: var(--p); }
 .kpi-val.k-payback { color: var(--warning); }
 .kpi-val.k-cost    { color: var(--neutral); }
-.kpi-sub { font-size: 11px; color: var(--text-4); margin: 5px 0 0 0; line-height: 1.5; }
+.kpi-sub { font-size: 12px; color: var(--text-4); margin: 5px 0 0 0; line-height: 1.5; }
 
 /* ── Cards ── */
-.card { background: var(--bg-surface); border: 1px solid var(--bd); border-radius: 12px; padding: 22px 24px; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.03); }
-.card-lbl   { font-size: 10px; font-weight: 600; color: var(--text-4); letter-spacing: .10em; text-transform: uppercase; margin: 0 0 12px 0; }
-.card-title { font-size: 17px; font-weight: 600; color: var(--text-1); margin: 0 0 14px 0; line-height: 1.35; }
+.card { background: var(--bg-surface); border: 1px solid var(--bd); border-radius: 16px; padding: 24px; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+.card-lbl   { font-size: 10px; font-weight: 600; color: var(--text-4); letter-spacing: .08em; text-transform: uppercase; margin: 0 0 12px 0; }
+.card-title { font-size: 17px; font-weight: 600; color: var(--text-1); margin: 0 0 14px 0; line-height: 1.4; }
 
 /* ── Channel table ── */
 .ch-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; margin-bottom: 8px; }
 .ch-table th {
   text-align: left; font-size: 10px; font-weight: 600; color: var(--text-4);
-  text-transform: uppercase; letter-spacing: .08em;
+  text-transform: uppercase; letter-spacing: .05em;
   padding: 0 10px 10px 10px; border-bottom: 2px solid var(--bd);
 }
-.ch-table td { padding: 8px 10px; border-bottom: 1px solid var(--bd-sub); color: var(--text-3); line-height: 1.4; }
+.ch-table td { padding: 8px 10px; border-bottom: 1px solid var(--bd); color: var(--text-3); line-height: 1.4; }
 .ch-table tr:last-child td { border-bottom: none; }
 .ch-table .num  { text-align: right; font-variant-numeric: tabular-nums; }
 .ch-table .bold { font-weight: 700; color: var(--text-1); }
 .ch-highlight td { background: var(--p-surface); color: var(--p); font-weight: 600; }
-.ch-highlight td:first-child { border-left: 3px solid var(--p); padding-left: 7px; }
 
 /* ── Detail rows ── */
-.dr { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; font-size: 13px; color: var(--text-3); border-bottom: 1px solid var(--bd-sub); line-height: 1.5; }
+.dr { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; font-size: 14px; color: var(--text-3); border-bottom: 1px solid var(--bd); line-height: 1.5; }
 .dr.sep  { border-top: 1px solid var(--bd); margin-top: 4px; padding-top: 10px; }
 .dr.bold { font-weight: 700; font-size: 14px; color: var(--text-1); }
 .dr.last { border-bottom: none; }
@@ -299,34 +279,32 @@ div[data-testid="stSelectbox"] > div { font-size: 13px !important; }
 
 /* ── Spot comparison ── */
 .spot-grid { display: grid; grid-template-columns: 1fr 32px 1fr; align-items: center; gap: 4px; margin-bottom: 12px; }
-.spot-box { border: 1px solid var(--bd-sub); border-radius: 10px; padding: 14px 16px; background: var(--bg-page); }
+.spot-box { border: 1px solid var(--bd); border-radius: 12px; padding: 14px 16px; background: var(--bg-page); }
 .spot-box.after { border-color: var(--p-border); background: var(--p-surface); }
-.spot-tag { font-size: 10px; font-weight: 600; color: var(--text-4); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 5px 0; }
+.spot-tag { font-size: 10px; font-weight: 600; color: var(--text-4); text-transform: uppercase; letter-spacing: .05em; margin: 0 0 5px 0; }
 .spot-val { font-size: 20px; font-weight: 700; color: var(--text-1); font-variant-numeric: tabular-nums; }
 .spot-box.after .spot-val { color: var(--p); }
-.spot-note { font-size: 11px; color: var(--text-4); margin: 3px 0 0 0; line-height: 1.5; }
+.spot-note { font-size: 12px; color: var(--text-4); margin: 3px 0 0 0; line-height: 1.5; }
 .arrow-c { text-align: center; color: #cbd5e1; font-size: 20px; }
 
 /* ── Save badge ── */
 .save-badge {
   display: inline-flex; align-items: center; gap: 5px;
-  background: linear-gradient(135deg, var(--success-surface) 0%, #d1fae5 100%);
+  background: var(--success-surface);
   color: #15803d; border: 1px solid var(--success-border);
-  border-radius: 8px; padding: 6px 14px; font-size: 13px; font-weight: 700;
-  box-shadow: 0 1px 3px rgba(16,185,129,.15);
+  border-radius: 8px; padding: 6px 14px; font-size: 13px; font-weight: 600;
 }
-.save-badge::before { content: '↓'; font-weight: 900; }
 
 /* ── Warn note ── */
-.warn { font-size: 11px; color: #78350f; background: var(--warning-surface); border: 1px solid var(--warning-border); border-radius: 8px; padding: 8px 12px; margin-top: 12px; line-height: 1.6; }
+.warn { font-size: 12px; color: #78350f; background: var(--warning-surface); border: 1px solid var(--warning-border); border-radius: 8px; padding: 8px 12px; margin-top: 12px; line-height: 1.6; }
 
 /* ── Saving preview (input tab) ── */
 .saving-preview {
   margin-top: 20px; padding: 18px 20px;
-  background: var(--p-surface); border: 1px solid var(--p-border); border-radius: 12px;
+  background: var(--p-surface); border: 1px solid var(--p-border); border-radius: 16px;
 }
-.saving-preview-lbl { font-size: 10px; font-weight: 600; color: var(--text-4); letter-spacing: .10em; text-transform: uppercase; margin: 0 0 6px 0; }
-.saving-preview-num { font-size: 30px; font-weight: 800; color: var(--p); margin: 0; font-variant-numeric: tabular-nums; letter-spacing: -0.015em; }
+.saving-preview-lbl { font-size: 10px; font-weight: 600; color: var(--text-4); letter-spacing: .08em; text-transform: uppercase; margin: 0 0 6px 0; }
+.saving-preview-num { font-size: 30px; font-weight: 800; color: var(--p); margin: 0; font-variant-numeric: tabular-nums; letter-spacing: 0; }
 .saving-preview-hint { font-size: 12px; color: var(--text-4); margin: 6px 0 0 0; line-height: 1.5; }
 
 /* ── Button ── */
@@ -334,12 +312,10 @@ div[data-testid="stSelectbox"] > div { font-size: 13px !important; }
   background: var(--p) !important; color: #fff !important;
   border: none !important; border-radius: 8px !important;
   padding: 9px 22px !important; font-size: 13px !important; font-weight: 500 !important;
-  transition: all 0.15s ease !important;
+  transition: background 150ms ease !important;
 }
 .stButton > button:hover {
   background: var(--p-hover) !important;
-  box-shadow: 0 4px 12px rgba(43,112,239,.3) !important;
-  transform: translateY(-1px) !important;
 }
 
 /* ── Print ── */
@@ -349,11 +325,10 @@ div[data-testid="stSelectbox"] > div { font-size: 13px !important; }
   .stApp { background: white !important; }
   .block-container { padding: 0 !important; max-width: 100% !important; }
   .print-header { display: block !important; margin-bottom: 20px; }
-  .ph-title { font-size: 11px; color: var(--text-4); letter-spacing: .08em; text-transform: uppercase; margin: 0; }
+  .ph-title { font-size: 11px; color: var(--text-4); letter-spacing: .05em; text-transform: uppercase; margin: 0; }
   .ph-name  { font-size: 22px; font-weight: 700; color: var(--text-1); margin: 4px 0 0 0; }
   .ph-line  { border: none; border-top: 2px solid var(--p); margin: 10px 0 0 0; }
   .hero { background: #0f172a !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .hero-num { -webkit-text-fill-color: #34d399 !important; background: none !important; }
   @page { margin: 12mm 15mm; size: A4; }
 }
 </style>
@@ -384,7 +359,7 @@ def dr(label, val, cls="dv", bold=False, sep=False, last=False):
 
 def section_header(sec, label):
     is_on = st.session_state.get(f'{sec}_on', False)
-    row_cls  = f"sec-header {'is-on' if is_on else ''}"
+    row_cls  = "sec-header"
     lbl_cls  = f"sec-lbl{'' if is_on else ' off'}"
     stat_cls = f"sec-status {'on' if is_on else 'off'}"
     stat_txt = "有効" if is_on else "無効"
@@ -445,15 +420,11 @@ with st.sidebar:
         '</div>',
         unsafe_allow_html=True,
     )
-    active_tab = st.radio(
-        "",
-        ["入力", "結果"],
-        label_visibility="collapsed",
-        key="active_tab_radio",
-    )
+
+tab_in, tab_out = st.tabs(["入力", "結果"])
 
 # ══ 入力タブ ════════════════════════════════════════════════════
-if active_tab == "入力":
+with tab_in:
     st.markdown('<p class="pg-title">採用費シミュレーター</p>', unsafe_allow_html=True)
     st.markdown('<p class="pg-sub">採用コスト・離職データを入力してください</p>', unsafe_allow_html=True)
 
@@ -563,7 +534,7 @@ if active_tab == "入力":
         """, unsafe_allow_html=True)
 
 # ══ 結果タブ ════════════════════════════════════════════════════
-else:
+with tab_out:
     results_cache = st.session_state.get('results_cache', {})
     spot_cache    = st.session_state.get('spot_cache', {})
     display_name  = st.session_state.get('company_name', '').strip() or '貴社'
@@ -670,18 +641,18 @@ else:
               <table class="ch-table">
                 <thead>
                   <tr>
-                    <th>チャネル</th>
-                    <th style="text-align:right">構成比</th>
-                    <th style="text-align:right">採用人数</th>
-                    <th style="text-align:right">採用単価</th>
-                    <th style="text-align:right">年間コスト</th>
+                    <th scope="col">チャネル</th>
+                    <th scope="col" style="text-align:right">構成比</th>
+                    <th scope="col" style="text-align:right">採用人数</th>
+                    <th scope="col" style="text-align:right">採用単価</th>
+                    <th scope="col" style="text-align:right">年間コスト</th>
                   </tr>
                 </thead>
                 <tbody>{ch_rows}</tbody>
               </table>
               <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--bd-sub);display:flex;align-items:center;flex-wrap:wrap;gap:10px">
                 <span style="font-size:12px;color:var(--text-3)">アルムナイ復職: <b style="color:var(--text-1)">{alumni_n:.1f}名/年</b>&nbsp;×&nbsp;{r['replace_ch']}単価 ¥{r['replace_unit']:,}</span>
-                <span class="save-badge">削減　{man(save)} / 年</span>
+                <span class="save-badge"><span aria-label="削減" role="img">↓</span>　削減　{man(save)} / 年</span>
               </div>
             </div>
             """, unsafe_allow_html=True)
@@ -705,7 +676,7 @@ else:
                   <p class="spot-note">TUNAG {sr['tunag_workers']:.0f}人（10%）＋ タイミー {sr['timee_workers']:.0f}人（{sr['timee_rate']}%）</p>
                 </div>
               </div>
-              <span class="save-badge">削減　{man(sr['saving'])} / 年</span>
+              <span class="save-badge"><span aria-label="削減" role="img">↓</span>　削減　{man(sr['saving'])} / 年</span>
             </div>
             """, unsafe_allow_html=True)
 
