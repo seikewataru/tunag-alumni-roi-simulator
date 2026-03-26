@@ -87,7 +87,10 @@ st.markdown("""
 
 /* ── Global ── */
 .stApp { background: var(--bg-page); }
-.block-container { padding: 28px 32px 48px !important; max-width: 1280px !important; }
+.block-container { padding: 16px 20px 48px !important; max-width: 1440px !important; }
+/* Streamlit sidebar 非表示（左ナビはカラムで実装） */
+[data-testid="stSidebar"],
+[data-testid="stSidebarCollapsedControl"] { display: none !important; }
 body {
   font-family: "Inter", "Noto Sans JP", "Hiragino Sans", sans-serif;
   font-size: 18px;
@@ -101,18 +104,17 @@ footer, #MainMenu, header[data-testid="stHeader"],
 [data-testid="stDecoration"] { display: none !important; }
 
 
-/* ── Sidebar ── */
-[data-testid="stSidebar"] {
-  background: var(--bg-surface) !important;
-  border-right: 1px solid var(--bd) !important;
-  min-width: 256px !important;
-  max-width: 256px !important;
+/* ── Left nav panel ── */
+.nav-panel {
+  background: var(--bg-surface);
+  border-right: 1px solid var(--bd);
+  padding: 20px 12px 32px 12px;
+  min-height: calc(100vh - 60px);
+  position: sticky; top: 0;
 }
-[data-testid="stSidebarContent"] { padding: 24px 12px 20px !important; }
-
 .nav-brand {
   display: flex; align-items: center; gap: 10px;
-  padding: 0 8px 18px 8px; margin-bottom: 12px;
+  padding: 0 8px 16px 8px; margin-bottom: 16px;
   border-bottom: 1px solid var(--bd);
 }
 .nav-brand-icon {
@@ -125,25 +127,24 @@ footer, #MainMenu, header[data-testid="stHeader"],
 .nav-logo { font-size: 13px; font-weight: 600; color: var(--text-1); margin: 0; line-height: 1.3; }
 .nav-sub  { font-size: 12px; color: var(--text-4); margin: 0; line-height: 1.4; }
 
-/* Radio → nav item */
-[data-testid="stSidebar"] [data-testid="stRadio"] label {
+/* Radio → nav item (左カラム内) */
+[data-testid="stRadio"] { gap: 2px !important; }
+[data-testid="stRadio"] label {
   display: flex !important; align-items: center !important;
-  width: 100% !important; padding: 10px 12px !important;
+  width: 100% !important; padding: 9px 12px !important;
   border-radius: 8px !important; cursor: pointer !important;
   transition: background 150ms ease, color 150ms ease !important;
   color: var(--text-2) !important; font-size: 13px !important;
   font-weight: 500 !important; margin-bottom: 2px !important;
-  background: transparent !important;
-  line-height: 1 !important;
+  background: transparent !important; line-height: 1 !important;
 }
-
-[data-testid="stSidebar"] [data-testid="stRadio"] label p {
+[data-testid="stRadio"] label p {
   color: inherit !important; font-size: 13px !important; font-weight: inherit !important; margin: 0 !important;
 }
-[data-testid="stSidebar"] [data-testid="stRadio"] label:hover {
+[data-testid="stRadio"] label:hover {
   background: var(--bg-page) !important; color: var(--text-1) !important;
 }
-[data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked) {
+[data-testid="stRadio"] label:has(input:checked) {
   background: var(--p-surface) !important; color: var(--p) !important;
   font-weight: 600 !important;
 }
@@ -410,301 +411,306 @@ def render_ch_editor(sec, hires):
     )
     return edited
 
-# ══ Sidebar ════════════════════════════════════════════════════
-with st.sidebar:
+# ══ Layout ═════════════════════════════════════════════════════
+nav_col, content_col = st.columns([2, 11], gap="small")
+
+with nav_col:
     st.markdown(
+        '<div class="nav-panel">'
         '<div class="nav-brand">'
         '<div class="nav-brand-icon">T</div>'
         '<div><p class="nav-logo">TUNAGアルムナイ</p>'
         '<p class="nav-sub">採用費シミュレーター</p></div>'
+        '</div>'
         '</div>',
         unsafe_allow_html=True,
     )
+    active_tab = st.radio("", ["入力", "結果"], label_visibility="collapsed", key="nav_radio")
 
-tab_in, tab_out = st.tabs(["入力", "結果"])
+# ══ コンテンツエリア ════════════════════════════════════════════
+with content_col:
+    # ── 入力タブ ──
+    if active_tab == "入力":
+        st.markdown('<p class="pg-title">採用費シミュレーター</p>', unsafe_allow_html=True)
+        st.markdown('<p class="pg-sub">採用コスト・離職データを入力してください</p>', unsafe_allow_html=True)
 
-# ══ 入力タブ ════════════════════════════════════════════════════
-with tab_in:
-    st.markdown('<p class="pg-title">採用費シミュレーター</p>', unsafe_allow_html=True)
-    st.markdown('<p class="pg-sub">採用コスト・離職データを入力してください</p>', unsafe_allow_html=True)
-
-    st.markdown('<p class="company-lbl">顧客企業名</p>', unsafe_allow_html=True)
-    company_name = st.text_input(
-        "", placeholder="例）〇〇株式会社",
-        label_visibility="collapsed", key="company_name_input",
-    )
-    st.session_state['company_name'] = company_name
-
-    results_cache = {}
-    for sec, meta in SECTIONS.items():
-        st.markdown('<hr class="sec-divider">', unsafe_allow_html=True)
-        section_header(sec, meta['label'])
-
-        if not st.session_state.get(f'{sec}_on', False):
-            continue
-
-        max_h  = 5000 if sec == 'part' else 500
-        step_h = 50   if sec == 'part' else 10
-        hires = sldr('年間採用数', f'{sec}_hires', 0, max_h, step_h, lambda v: f'{v:,}名')
-
-        edited       = render_ch_editor(sec, hires)
-        current_cost = int((edited['採用人数'] * edited['採用単価(円)']).sum())
-
-        st.markdown('<hr class="sec-divider" style="margin:14px 0">', unsafe_allow_html=True)
-        st.markdown('<p class="field-lbl">アルムナイ復職（OB/OG採用）</p>', unsafe_allow_html=True)
-
-        max_l = 5000 if sec == 'part' else 500
-        leavers  = sldr('年間離職者数',    f'{sec}_leavers',  0, max_l, step_h, lambda v: f'{v:,}名')
-        reg_rate = sldr('アルムナイ登録率', f'{sec}_reg_rate', 0, 100, 1, lambda v: f'{v}%',
-                        hint='退職者のうちTUNAGに登録する割合（実績: 20〜40%）')
-        ret_rate = sldr('復帰率',          f'{sec}_ret_rate', 0,  50, 1, lambda v: f'{v}%',
-                        hint='登録者のうち実際に復帰する割合（実績: 5〜15%）')
-
-        ch_names = [r for r in edited['チャネル名'].tolist() if str(r).strip()]
-        if not ch_names:
-            ch_names = ['（チャネルなし）']
-        replace_ch   = st.selectbox('復帰者が代替するチャネル', options=ch_names, key=f'{sec}_replace_ch')
-        matched      = edited[edited['チャネル名'] == replace_ch]
-        replace_unit = int(matched.iloc[0]['採用単価(円)']) if not matched.empty else 0
-
-        alumni_returns = leavers * reg_rate / 100 * ret_rate / 100
-        saving = alumni_returns * replace_unit
-
-        results_cache[sec] = {
-            'label': meta['label'], 'hires': hires, 'current_cost': current_cost,
-            'ch_data': edited.to_dict('records'),
-            'alumni_returns': alumni_returns, 'replace_ch': replace_ch,
-            'replace_unit': replace_unit, 'saving': saving,
-        }
-
-    st.session_state['results_cache'] = results_cache
-
-    # スポットワーク
-    st.markdown('<hr class="sec-divider">', unsafe_allow_html=True)
-    section_header('spot', 'スポットワーク手数料削減（タイミー代替）')
-
-    spot_cache = {}
-    if st.session_state.get('spot_on', False):
-        st.markdown('<p class="field-lbl">現状（タイミー利用）</p>', unsafe_allow_html=True)
-        workers    = sldr('月間スポットワーカー数', 'spot_workers',     0, 1000, 10, lambda v: f'{v:,}人')
-        wage       = sldr('平均時給',               'spot_wage',      800, 3000, 50, lambda v: f'¥{v:,}')
-        hours      = sldr('平均勤務時間 / 件',       'spot_hours',      1,   12,  1, lambda v: f'{v}h')
-        timee_rate = sldr('タイミー手数料率',         'spot_timee_rate', 5,   50,  1, lambda v: f'{v}%')
-
-        st.markdown('<hr class="sec-divider" style="margin:14px 0">', unsafe_allow_html=True)
-        st.markdown('<p class="field-lbl">TUNAGアルムナイでの充足</p>', unsafe_allow_html=True)
-        fulfill_rate = sldr('スポットワーク充足率', 'spot_fulfill_rate', 0, 100, 1, lambda v: f'{v}%',
-                            hint='スポット需要のうちTUNAGアルムナイで充足できる割合')
-
-        tunag_workers  = workers * fulfill_rate / 100
-        timee_workers  = workers - tunag_workers
-        current_annual = workers * wage * hours * timee_rate / 100 * 12
-        new_annual     = (tunag_workers * wage * hours * 0.10
-                          + timee_workers * wage * hours * timee_rate / 100) * 12
-        spot_saving    = current_annual - new_annual
-        spot_cache = {
-            'workers': workers, 'wage': wage, 'hours': hours, 'timee_rate': timee_rate,
-            'fulfill_rate': fulfill_rate, 'tunag_workers': tunag_workers,
-            'timee_workers': timee_workers, 'current_annual': current_annual,
-            'new_annual': new_annual, 'saving': spot_saving,
-        }
-
-    st.session_state['spot_cache'] = spot_cache
-
-    # TUNAG利用料
-    st.markdown('<hr class="sec-divider">', unsafe_allow_html=True)
-    with st.expander('詳細設定（TUNAG利用料）'):
-        c1, c2 = st.columns(2)
-        with c1:
-            st.number_input('初期費用（円）',   min_value=0, value=500_000, step=50_000, format='%d', key='initial_fee')
-        with c2:
-            st.number_input('月額利用料（円）', min_value=0, value=200_000, step=10_000, format='%d', key='monthly_fee')
-
-    # 小計プレビュー
-    recruit_saving = sum(r['saving'] for r in results_cache.values())
-    spot_saving    = spot_cache.get('saving', 0)
-    total_saving   = recruit_saving + spot_saving
-    if total_saving > 0:
-        st.markdown(f"""
-        <div class="saving-preview">
-          <p class="saving-preview-lbl">推計 年間削減効果</p>
-          <p class="saving-preview-num">約 {man(total_saving)}</p>
-          <p class="saving-preview-hint">「結果」タブで詳細・ROI・回収期間を確認できます</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-# ══ 結果タブ ════════════════════════════════════════════════════
-with tab_out:
-    results_cache = st.session_state.get('results_cache', {})
-    spot_cache    = st.session_state.get('spot_cache', {})
-    display_name  = st.session_state.get('company_name', '').strip() or '貴社'
-    initial_fee   = st.session_state.get('initial_fee', 500_000)
-    monthly_fee   = st.session_state.get('monthly_fee', 200_000)
-
-    recruit_saving = sum(r['saving'] for r in results_cache.values())
-    spot_saving    = spot_cache.get('saving', 0)
-    total_saving   = recruit_saving + spot_saving
-    tunag_y1       = initial_fee + monthly_fee * 12
-    tunag_y2       = monthly_fee * 12
-    net_y1         = total_saving - tunag_y1
-    net_y2         = total_saving - tunag_y2
-    roi            = total_saving / tunag_y2 if tunag_y2 > 0 else 0
-    pb_months      = tunag_y1 / (total_saving / 12) if total_saving > 0 else float('inf')
-    monthly_sav    = total_saving / 12
-    pb_str         = f'{pb_months:.0f}ヶ月' if pb_months != float('inf') else '—'
-
-    # Print header
-    st.markdown(f"""
-    <div class="print-header">
-      <p class="ph-title">TUNAGアルムナイ 費用対効果試算書</p>
-      <p class="ph-name">{display_name} 御中</p>
-      <hr class="ph-line">
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown(f'<p class="pg-title">{display_name} 御中　試算結果</p>', unsafe_allow_html=True)
-    st.markdown('<p class="pg-sub">入力タブの値をもとに算出した費用対効果です</p>', unsafe_allow_html=True)
-
-    if not results_cache and not spot_cache:
-        st.info("まず「入力」タブでデータを入力してください。")
-    else:
-        # ── Hero ──
-        hero_sub_parts = []
-        if recruit_saving > 0:
-            hero_sub_parts.append(f'採用費削減 <b>{man(recruit_saving)}</b>')
-        if spot_saving > 0:
-            hero_sub_parts.append(f'スポット削減 <b>{man(spot_saving)}</b>')
-        hero_sub_parts.append(f'TUNAG費 <b>{man(tunag_y1)}</b>')
-
-        st.markdown(f"""
-        <div class="hero">
-          <p class="hero-lbl">年間コスト削減効果（合計）</p>
-          <p class="hero-num">約 {man(total_saving)}</p>
-          <hr class="hero-divider">
-          <div class="hero-sub">{'&emsp;'.join(hero_sub_parts)}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # ── KPI 4-column ──
-        roi_cls = 'kpi-val k-roi'
-        pb_cls  = 'kpi-val k-payback'
-        st.markdown(f"""
-        <div class="kpi-row">
-          <div class="kpi-box k-saving">
-            <p class="kpi-lbl">年間削減効果</p>
-            <p class="kpi-val k-saving">{man(total_saving)}</p>
-            <p class="kpi-sub">採用費＋スポット手数料</p>
-          </div>
-          <div class="kpi-box k-roi">
-            <p class="kpi-lbl">ROI（2年目以降）</p>
-            <p class="{roi_cls}">{roi:.1f}x</p>
-            <p class="kpi-sub">TUNAG費1円あたり {roi:.1f}円の削減</p>
-          </div>
-          <div class="kpi-box k-payback">
-            <p class="kpi-lbl">初期費用回収期間</p>
-            <p class="{pb_cls}">{pb_str}</p>
-            <p class="kpi-sub">月次削減額に基づく試算</p>
-          </div>
-          <div class="kpi-box k-cost">
-            <p class="kpi-lbl">TUNAG利用料（初年度）</p>
-            <p class="kpi-val k-cost">{man(tunag_y1)}</p>
-            <p class="kpi-sub">月額 {man(monthly_fee)}×12 ＋ 初期費用</p>
-          </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # ── セクション別チャネル表 ──
-        for sec, r in results_cache.items():
-            edited  = pd.DataFrame(r['ch_data'])
-            ch_rows = ''
-            for _, row in edited.iterrows():
-                name = str(row['チャネル名']).strip()
-                if not name:
-                    continue
-                is_replace = (name == r['replace_ch'])
-                tr_cls = ' class="ch-highlight"' if is_replace else ''
-                badge  = '&nbsp;<span style="font-size:9px;font-weight:700;color:var(--p);background:var(--p-surface);border:1px solid var(--p-border);border-radius:4px;padding:1px 5px;letter-spacing:.03em">代替</span>' if is_replace else ''
-                ch_rows += f"""
-                <tr{tr_cls}>
-                  <td>{name}{badge}</td>
-                  <td class="num">{row['構成比(%)']:.0f}%</td>
-                  <td class="num">{row['採用人数']:,}名</td>
-                  <td class="num">¥{row['採用単価(円)']:,}</td>
-                  <td class="num bold">{row['年間コスト(万円)']:,}万円</td>
-                </tr>"""
-
-            alumni_n = r['alumni_returns']
-            save     = r['saving']
-            st.markdown(f"""
-            <div class="card">
-              <p class="card-title">{r['label']}</p>
-              <table class="ch-table">
-                <thead>
-                  <tr>
-                    <th scope="col">チャネル</th>
-                    <th scope="col" style="text-align:right">構成比</th>
-                    <th scope="col" style="text-align:right">採用人数</th>
-                    <th scope="col" style="text-align:right">採用単価</th>
-                    <th scope="col" style="text-align:right">年間コスト</th>
-                  </tr>
-                </thead>
-                <tbody>{ch_rows}</tbody>
-              </table>
-              <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--bd-sub);display:flex;align-items:center;flex-wrap:wrap;gap:10px">
-                <span style="font-size:12px;color:var(--text-3)">アルムナイ復職: <b style="color:var(--text-1)">{alumni_n:.1f}名/年</b>&nbsp;×&nbsp;{r['replace_ch']}単価 ¥{r['replace_unit']:,}</span>
-                <span class="save-badge"><span aria-label="削減" role="img">↓</span>　削減　{man(save)} / 年</span>
-              </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        # ── スポットワーク ──
-        if spot_cache:
-            sr = spot_cache
-            st.markdown(f"""
-            <div class="card">
-              <p class="card-title">スポットワーク手数料削減</p>
-              <div class="spot-grid">
-                <div class="spot-box">
-                  <p class="spot-tag">現状（タイミー {sr['timee_rate']}%）</p>
-                  <p class="spot-val">{man(sr['current_annual'])}</p>
-                  <p class="spot-note">{sr['workers']}人/月 × ¥{sr['wage']:,} × {sr['hours']}h × {sr['timee_rate']}% × 12</p>
-                </div>
-                <div class="arrow-c">→</div>
-                <div class="spot-box after">
-                  <p class="spot-tag">導入後（TUNAG {sr['fulfill_rate']:.0f}%充足）</p>
-                  <p class="spot-val">{man(sr['new_annual'])}</p>
-                  <p class="spot-note">TUNAG {sr['tunag_workers']:.0f}人（10%）＋ タイミー {sr['timee_workers']:.0f}人（{sr['timee_rate']}%）</p>
-                </div>
-              </div>
-              <span class="save-badge"><span aria-label="削減" role="img">↓</span>　削減　{man(sr['saving'])} / 年</span>
-            </div>
-            """, unsafe_allow_html=True)
-
-        # ── 費用対効果まとめ ──
-        s1c = 'dv-g' if net_y1 >= 0 else 'dv-r'
-        s2c = 'dv-g' if net_y2 >= 0 else 'dv-r'
-        sec_rows = ''.join(
-            dr(f'　{r["label"]}　採用コスト削減', '＋' + man(r['saving']), 'dv-g')
-            for r in results_cache.values()
+        st.markdown('<p class="company-lbl">顧客企業名</p>', unsafe_allow_html=True)
+        company_name = st.text_input(
+            "", placeholder="例）〇〇株式会社",
+            label_visibility="collapsed", key="company_name_input",
         )
-        spot_row = dr('　スポットワーク手数料削減', '＋' + man(spot_saving), 'dv-g') if spot_cache else ''
+        st.session_state['company_name'] = company_name
 
+        results_cache = {}
+        for sec, meta in SECTIONS.items():
+            st.markdown('<hr class="sec-divider">', unsafe_allow_html=True)
+            section_header(sec, meta['label'])
+
+            if not st.session_state.get(f'{sec}_on', False):
+                continue
+
+            max_h  = 5000 if sec == 'part' else 500
+            step_h = 50   if sec == 'part' else 10
+            hires = sldr('年間採用数', f'{sec}_hires', 0, max_h, step_h, lambda v: f'{v:,}名')
+
+            edited       = render_ch_editor(sec, hires)
+            current_cost = int((edited['採用人数'] * edited['採用単価(円)']).sum())
+
+            st.markdown('<hr class="sec-divider" style="margin:14px 0">', unsafe_allow_html=True)
+            st.markdown('<p class="field-lbl">アルムナイ復職（OB/OG採用）</p>', unsafe_allow_html=True)
+
+            max_l = 5000 if sec == 'part' else 500
+            leavers  = sldr('年間離職者数',    f'{sec}_leavers',  0, max_l, step_h, lambda v: f'{v:,}名')
+            reg_rate = sldr('アルムナイ登録率', f'{sec}_reg_rate', 0, 100, 1, lambda v: f'{v}%',
+                            hint='退職者のうちTUNAGに登録する割合（実績: 20〜40%）')
+            ret_rate = sldr('復帰率',          f'{sec}_ret_rate', 0,  50, 1, lambda v: f'{v}%',
+                            hint='登録者のうち実際に復帰する割合（実績: 5〜15%）')
+
+            ch_names = [r for r in edited['チャネル名'].tolist() if str(r).strip()]
+            if not ch_names:
+                ch_names = ['（チャネルなし）']
+            replace_ch   = st.selectbox('復帰者が代替するチャネル', options=ch_names, key=f'{sec}_replace_ch')
+            matched      = edited[edited['チャネル名'] == replace_ch]
+            replace_unit = int(matched.iloc[0]['採用単価(円)']) if not matched.empty else 0
+
+            alumni_returns = leavers * reg_rate / 100 * ret_rate / 100
+            saving = alumni_returns * replace_unit
+
+            results_cache[sec] = {
+                'label': meta['label'], 'hires': hires, 'current_cost': current_cost,
+                'ch_data': edited.to_dict('records'),
+                'alumni_returns': alumni_returns, 'replace_ch': replace_ch,
+                'replace_unit': replace_unit, 'saving': saving,
+            }
+
+        st.session_state['results_cache'] = results_cache
+
+        # スポットワーク
+        st.markdown('<hr class="sec-divider">', unsafe_allow_html=True)
+        section_header('spot', 'スポットワーク手数料削減（タイミー代替）')
+
+        spot_cache = {}
+        if st.session_state.get('spot_on', False):
+            st.markdown('<p class="field-lbl">現状（タイミー利用）</p>', unsafe_allow_html=True)
+            workers    = sldr('月間スポットワーカー数', 'spot_workers',     0, 1000, 10, lambda v: f'{v:,}人')
+            wage       = sldr('平均時給',               'spot_wage',      800, 3000, 50, lambda v: f'¥{v:,}')
+            hours      = sldr('平均勤務時間 / 件',       'spot_hours',      1,   12,  1, lambda v: f'{v}h')
+            timee_rate = sldr('タイミー手数料率',         'spot_timee_rate', 5,   50,  1, lambda v: f'{v}%')
+
+            st.markdown('<hr class="sec-divider" style="margin:14px 0">', unsafe_allow_html=True)
+            st.markdown('<p class="field-lbl">TUNAGアルムナイでの充足</p>', unsafe_allow_html=True)
+            fulfill_rate = sldr('スポットワーク充足率', 'spot_fulfill_rate', 0, 100, 1, lambda v: f'{v}%',
+                                hint='スポット需要のうちTUNAGアルムナイで充足できる割合')
+
+            tunag_workers  = workers * fulfill_rate / 100
+            timee_workers  = workers - tunag_workers
+            current_annual = workers * wage * hours * timee_rate / 100 * 12
+            new_annual     = (tunag_workers * wage * hours * 0.10
+                              + timee_workers * wage * hours * timee_rate / 100) * 12
+            spot_saving    = current_annual - new_annual
+            spot_cache = {
+                'workers': workers, 'wage': wage, 'hours': hours, 'timee_rate': timee_rate,
+                'fulfill_rate': fulfill_rate, 'tunag_workers': tunag_workers,
+                'timee_workers': timee_workers, 'current_annual': current_annual,
+                'new_annual': new_annual, 'saving': spot_saving,
+            }
+
+        st.session_state['spot_cache'] = spot_cache
+
+        # TUNAG利用料
+        st.markdown('<hr class="sec-divider">', unsafe_allow_html=True)
+        with st.expander('詳細設定（TUNAG利用料）'):
+            c1, c2 = st.columns(2)
+            with c1:
+                st.number_input('初期費用（円）',   min_value=0, value=500_000, step=50_000, format='%d', key='initial_fee')
+            with c2:
+                st.number_input('月額利用料（円）', min_value=0, value=200_000, step=10_000, format='%d', key='monthly_fee')
+
+        # 小計プレビュー
+        recruit_saving = sum(r['saving'] for r in results_cache.values())
+        spot_saving    = spot_cache.get('saving', 0)
+        total_saving   = recruit_saving + spot_saving
+        if total_saving > 0:
+            st.markdown(f"""
+            <div class="saving-preview">
+              <p class="saving-preview-lbl">推計 年間削減効果</p>
+              <p class="saving-preview-num">約 {man(total_saving)}</p>
+              <p class="saving-preview-hint">「結果」タブで詳細・ROI・回収期間を確認できます</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+    # ── 結果タブ ──
+    else:
+        results_cache = st.session_state.get('results_cache', {})
+        spot_cache    = st.session_state.get('spot_cache', {})
+        display_name  = st.session_state.get('company_name', '').strip() or '貴社'
+        initial_fee   = st.session_state.get('initial_fee', 500_000)
+        monthly_fee   = st.session_state.get('monthly_fee', 200_000)
+
+        recruit_saving = sum(r['saving'] for r in results_cache.values())
+        spot_saving    = spot_cache.get('saving', 0)
+        total_saving   = recruit_saving + spot_saving
+        tunag_y1       = initial_fee + monthly_fee * 12
+        tunag_y2       = monthly_fee * 12
+        net_y1         = total_saving - tunag_y1
+        net_y2         = total_saving - tunag_y2
+        roi            = total_saving / tunag_y2 if tunag_y2 > 0 else 0
+        pb_months      = tunag_y1 / (total_saving / 12) if total_saving > 0 else float('inf')
+        monthly_sav    = total_saving / 12
+        pb_str         = f'{pb_months:.0f}ヶ月' if pb_months != float('inf') else '—'
+
+        # Print header
         st.markdown(f"""
-        <div class="card">
-          <p class="card-lbl">費用対効果まとめ</p>
-          {sec_rows}
-          {spot_row}
-          {dr('合計削減効果', '＋' + man(total_saving), 'dv-g', bold=True, sep=True)}
-          {dr('TUNAG年間費用（初年度: 初期＋月額×12）', '−' + man(tunag_y1), 'dv-s', sep=True)}
-          {dr('TUNAG年間費用（2年目以降: 月額×12）',   '−' + man(tunag_y2), 'dv-s')}
-          {dr('純削減額（初年度）',    man(abs(net_y1)), s1c, bold=True, sep=True)}
-          {dr('純削減額（2年目以降）', man(abs(net_y2)), s2c, bold=True, last=True)}
-          <div class="warn">※ アルムナイ採用単価はゼロで試算（TUNAGアルムナイ経由の1名あたり追加コストは発生しないため）。登録率・復職率はTUNAGアルムナイ導入企業の実績値に基づく参考値です。</div>
+        <div class="print-header">
+          <p class="ph-title">TUNAGアルムナイ 費用対効果試算書</p>
+          <p class="ph-name">{display_name} 御中</p>
+          <hr class="ph-line">
         </div>
         """, unsafe_allow_html=True)
 
-        # ── PDF ──
-        st.markdown('<div style="margin-top:16px">', unsafe_allow_html=True)
-        if st.button('PDF保存 / 印刷', use_container_width=False):
-            components.html('<script>window.print();</script>', height=0)
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown(f'<p class="pg-title">{display_name} 御中　試算結果</p>', unsafe_allow_html=True)
+        st.markdown('<p class="pg-sub">入力タブの値をもとに算出した費用対効果です</p>', unsafe_allow_html=True)
+
+        if not results_cache and not spot_cache:
+            st.info("まず「入力」タブでデータを入力してください。")
+        else:
+            # ── Hero ──
+            hero_sub_parts = []
+            if recruit_saving > 0:
+                hero_sub_parts.append(f'採用費削減 <b>{man(recruit_saving)}</b>')
+            if spot_saving > 0:
+                hero_sub_parts.append(f'スポット削減 <b>{man(spot_saving)}</b>')
+            hero_sub_parts.append(f'TUNAG費 <b>{man(tunag_y1)}</b>')
+
+            st.markdown(f"""
+            <div class="hero">
+              <p class="hero-lbl">年間コスト削減効果（合計）</p>
+              <p class="hero-num">約 {man(total_saving)}</p>
+              <hr class="hero-divider">
+              <div class="hero-sub">{'&emsp;'.join(hero_sub_parts)}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # ── KPI 4-column ──
+            roi_cls = 'kpi-val k-roi'
+            pb_cls  = 'kpi-val k-payback'
+            st.markdown(f"""
+            <div class="kpi-row">
+              <div class="kpi-box k-saving">
+                <p class="kpi-lbl">年間削減効果</p>
+                <p class="kpi-val k-saving">{man(total_saving)}</p>
+                <p class="kpi-sub">採用費＋スポット手数料</p>
+              </div>
+              <div class="kpi-box k-roi">
+                <p class="kpi-lbl">ROI（2年目以降）</p>
+                <p class="{roi_cls}">{roi:.1f}x</p>
+                <p class="kpi-sub">TUNAG費1円あたり {roi:.1f}円の削減</p>
+              </div>
+              <div class="kpi-box k-payback">
+                <p class="kpi-lbl">初期費用回収期間</p>
+                <p class="{pb_cls}">{pb_str}</p>
+                <p class="kpi-sub">月次削減額に基づく試算</p>
+              </div>
+              <div class="kpi-box k-cost">
+                <p class="kpi-lbl">TUNAG利用料（初年度）</p>
+                <p class="kpi-val k-cost">{man(tunag_y1)}</p>
+                <p class="kpi-sub">月額 {man(monthly_fee)}×12 ＋ 初期費用</p>
+              </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # ── セクション別チャネル表 ──
+            for sec, r in results_cache.items():
+                edited  = pd.DataFrame(r['ch_data'])
+                ch_rows = ''
+                for _, row in edited.iterrows():
+                    name = str(row['チャネル名']).strip()
+                    if not name:
+                        continue
+                    is_replace = (name == r['replace_ch'])
+                    tr_cls = ' class="ch-highlight"' if is_replace else ''
+                    badge  = '&nbsp;<span style="font-size:9px;font-weight:700;color:var(--p);background:var(--p-surface);border:1px solid var(--p-border);border-radius:4px;padding:1px 5px;letter-spacing:.03em">代替</span>' if is_replace else ''
+                    ch_rows += f"""
+                    <tr{tr_cls}>
+                      <td>{name}{badge}</td>
+                      <td class="num">{row['構成比(%)']:.0f}%</td>
+                      <td class="num">{row['採用人数']:,}名</td>
+                      <td class="num">¥{row['採用単価(円)']:,}</td>
+                      <td class="num bold">{row['年間コスト(万円)']:,}万円</td>
+                    </tr>"""
+
+                alumni_n = r['alumni_returns']
+                save     = r['saving']
+                st.markdown(f"""
+                <div class="card">
+                  <p class="card-title">{r['label']}</p>
+                  <table class="ch-table">
+                    <thead>
+                      <tr>
+                        <th scope="col">チャネル</th>
+                        <th scope="col" style="text-align:right">構成比</th>
+                        <th scope="col" style="text-align:right">採用人数</th>
+                        <th scope="col" style="text-align:right">採用単価</th>
+                        <th scope="col" style="text-align:right">年間コスト</th>
+                      </tr>
+                    </thead>
+                    <tbody>{ch_rows}</tbody>
+                  </table>
+                  <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--bd-sub);display:flex;align-items:center;flex-wrap:wrap;gap:10px">
+                    <span style="font-size:12px;color:var(--text-3)">アルムナイ復職: <b style="color:var(--text-1)">{alumni_n:.1f}名/年</b>&nbsp;×&nbsp;{r['replace_ch']}単価 ¥{r['replace_unit']:,}</span>
+                    <span class="save-badge"><span aria-label="削減" role="img">↓</span>　削減　{man(save)} / 年</span>
+                  </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            # ── スポットワーク ──
+            if spot_cache:
+                sr = spot_cache
+                st.markdown(f"""
+                <div class="card">
+                  <p class="card-title">スポットワーク手数料削減</p>
+                  <div class="spot-grid">
+                    <div class="spot-box">
+                      <p class="spot-tag">現状（タイミー {sr['timee_rate']}%）</p>
+                      <p class="spot-val">{man(sr['current_annual'])}</p>
+                      <p class="spot-note">{sr['workers']}人/月 × ¥{sr['wage']:,} × {sr['hours']}h × {sr['timee_rate']}% × 12</p>
+                    </div>
+                    <div class="arrow-c">→</div>
+                    <div class="spot-box after">
+                      <p class="spot-tag">導入後（TUNAG {sr['fulfill_rate']:.0f}%充足）</p>
+                      <p class="spot-val">{man(sr['new_annual'])}</p>
+                      <p class="spot-note">TUNAG {sr['tunag_workers']:.0f}人（10%）＋ タイミー {sr['timee_workers']:.0f}人（{sr['timee_rate']}%）</p>
+                    </div>
+                  </div>
+                  <span class="save-badge"><span aria-label="削減" role="img">↓</span>　削減　{man(sr['saving'])} / 年</span>
+                </div>
+                """, unsafe_allow_html=True)
+
+            # ── 費用対効果まとめ ──
+            s1c = 'dv-g' if net_y1 >= 0 else 'dv-r'
+            s2c = 'dv-g' if net_y2 >= 0 else 'dv-r'
+            sec_rows = ''.join(
+                dr(f'　{r["label"]}　採用コスト削減', '＋' + man(r['saving']), 'dv-g')
+                for r in results_cache.values()
+            )
+            spot_row = dr('　スポットワーク手数料削減', '＋' + man(spot_saving), 'dv-g') if spot_cache else ''
+
+            st.markdown(f"""
+            <div class="card">
+              <p class="card-lbl">費用対効果まとめ</p>
+              {sec_rows}
+              {spot_row}
+              {dr('合計削減効果', '＋' + man(total_saving), 'dv-g', bold=True, sep=True)}
+              {dr('TUNAG年間費用（初年度: 初期＋月額×12）', '−' + man(tunag_y1), 'dv-s', sep=True)}
+              {dr('TUNAG年間費用（2年目以降: 月額×12）',   '−' + man(tunag_y2), 'dv-s')}
+              {dr('純削減額（初年度）',    man(abs(net_y1)), s1c, bold=True, sep=True)}
+              {dr('純削減額（2年目以降）', man(abs(net_y2)), s2c, bold=True, last=True)}
+              <div class="warn">※ アルムナイ採用単価はゼロで試算（TUNAGアルムナイ経由の1名あたり追加コストは発生しないため）。登録率・復職率はTUNAGアルムナイ導入企業の実績値に基づく参考値です。</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # ── PDF ──
+            st.markdown('<div style="margin-top:16px">', unsafe_allow_html=True)
+            if st.button('PDF保存 / 印刷', use_container_width=False):
+                components.html('<script>window.print();</script>', height=0)
+            st.markdown('</div>', unsafe_allow_html=True)
