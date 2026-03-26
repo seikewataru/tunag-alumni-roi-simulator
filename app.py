@@ -412,15 +412,15 @@ with right:
     st.markdown(f"""
     <div class="dtl">
       <p class="dtl-lbl">費用対効果まとめ</p>
-      {dr("現状の年間人材紹介コスト", yen(current_cost))}
-      {dr("導入後の年間人材紹介コスト", yen(new_cost))}
-      {dr("　採用コスト削減額", "＋" + yen(recruit_saving), "dv-g", sep=True)}
+      {dr("現状の年間人材紹介コスト", man(current_cost))}
+      {dr("導入後の年間人材紹介コスト", man(new_cost))}
+      {dr("　採用コスト削減額", "＋" + man(recruit_saving), "dv-g", sep=True)}
       {spot_dr}
-      {dr("合計削減効果", "＋" + yen(total_saving), "dv-g", bold=True, sep=True)}
-      {dr("TUNAG年間費用（初年度: 初期＋月額×12）", "−" + yen(tunag_y1), "dv-r", sep=True)}
-      {dr("TUNAG年間費用（2年目以降: 月額×12）", "−" + yen(tunag_y2), "dv-r")}
-      {dr("純削減額（初年度）", yen(abs(net_y1)), s1c, bold=True, sep=True)}
-      {dr("純削減額（2年目以降）", yen(abs(net_y2)), s2c, bold=True, last=True)}
+      {dr("合計削減効果", "＋" + man(total_saving), "dv-g", bold=True, sep=True)}
+      {dr("TUNAG年間費用（初年度: 初期＋月額×12）", "−" + man(tunag_y1), "dv-r", sep=True)}
+      {dr("TUNAG年間費用（2年目以降: 月額×12）", "−" + man(tunag_y2), "dv-r")}
+      {dr("純削減額（初年度）", man(abs(net_y1)), s1c, bold=True, sep=True)}
+      {dr("純削減額（2年目以降）", man(abs(net_y2)), s2c, bold=True, last=True)}
       <div class="warn">※ アルムナイ採用単価はゼロで試算しています（人材紹介会社への成功報酬が不要なため）。登録率・復職率はTUNAGアルムナイ導入企業の実績値に基づく参考値です。</div>
     </div>
     """, unsafe_allow_html=True)
