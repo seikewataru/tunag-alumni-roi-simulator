@@ -26,8 +26,6 @@ st.markdown("""
 .block-container { padding: 28px 32px 48px !important; max-width: 1120px !important; }
 * {
   font-family: "Inter", "Noto Sans JP", "Hiragino Sans", sans-serif !important;
-  letter-spacing: 0.02em !important;
-  line-height: 1.8 !important;
 }
 footer, #MainMenu, header[data-testid="stHeader"],
 [data-testid="stToolbar"], .stDeployButton,
