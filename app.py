@@ -22,196 +22,246 @@ for k, v in DEFAULTS.items():
 st.markdown("""
 <style>
 /* ── Base ── */
-.stApp { background: #f8fafc; }
+.stApp { background: #f9fafb; }
 .block-container { padding: 28px 32px 48px !important; max-width: 1120px !important; }
-* { font-family: "Hiragino Sans", "Noto Sans JP", sans-serif !important; }
+* {
+  font-family: "Inter", "Noto Sans JP", "Hiragino Sans", sans-serif !important;
+  letter-spacing: 0.02em !important;
+  line-height: 1.8 !important;
+}
 footer, #MainMenu, header[data-testid="stHeader"],
 [data-testid="stToolbar"], .stDeployButton,
-[data-testid="stDecoration"] { display:none !important; }
+[data-testid="stDecoration"] { display: none !important; }
 
-/* ── Page header ── */
-.pg-title { font-size:24px; font-weight:700; color:#0f172a; margin:0 0 4px 0; line-height:1.3; }
-.pg-sub   { font-size:14px; color:#94a3b8; margin:0 0 24px 0; }
+/* ── Page title: text-2xl font-bold text-brand-black ── */
+.pg-title { font-size: 24px; font-weight: 700; color: #0f172a; margin: 0 0 4px 0; line-height: 1.3 !important; }
+/* ── Subtitle: text-sm text-gray-400 ── */
+.pg-sub { font-size: 14px; color: #94a3b8; margin: 0 0 24px 0; line-height: 1.6 !important; }
 
-/* ── Cards ── */
-.card {
-  background:#fff; border:1px solid #e2e8f0; border-radius:12px;
-  padding:24px; box-shadow:0 1px 3px rgba(0,0,0,.05);
+/* ── Left column card: rounded-xl border border-slate-200 bg-white p-6 shadow-sm ── */
+[data-testid="column"]:first-child > div:first-child {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px 24px 28px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,.05);
 }
-.card + .card { margin-top:12px; }
 
-/* ── Section label inside card ── */
+/* ── Section heading: text-lg font-semibold text-brand-black ── */
 .sec-lbl {
-  font-size:14px; font-weight:600; color:#0f172a;
-  margin:0 0 10px 0;
-  display:flex; align-items:center; gap:8px;
+  font-size: 15px; font-weight: 600; color: #0f172a;
+  margin: 0 0 10px 0; line-height: 1.4 !important;
 }
-.sec-divider { margin:20px 0 16px 0; border:none; border-top:1px solid #f1f5f9; }
 
-/* ── 社名入力 ── */
+/* ── Divider ── */
+.sec-divider { border: none; border-top: 1px solid #f1f5f9; margin: 20px 0 16px 0; }
+
+/* ── Company label: text-xs font-medium uppercase tracking-wide text-gray-400 ── */
 .company-lbl {
-  font-size:12px; font-weight:500; color:#64748b;
-  margin:0 0 6px 0;
+  font-size: 11px; font-weight: 500; color: #94a3b8;
+  letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 6px 0;
 }
+
+/* ── Text input: rounded border border-slate-200 px-3 py-1.5 text-sm ── */
 div[data-testid="stTextInput"] input {
-  border-radius:8px !important; border:1.5px solid #c0d4ff !important;
-  font-size:15px !important; font-weight:600 !important;
-  color:#0f172a !important; background:#f0f5ff !important;
-  padding:10px 14px !important;
+  border-radius: 6px !important;
+  border: 1px solid #e2e8f0 !important;
+  font-size: 14px !important;
+  color: #0f172a !important;
+  background: #fff !important;
+  padding: 8px 12px !important;
 }
 div[data-testid="stTextInput"] input:focus {
-  border-color:#2b70ef !important; outline:none !important;
-  box-shadow:0 0 0 3px rgba(43,112,239,.12) !important;
+  border-color: #2b70ef !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(43,112,239,.1) !important;
 }
 
 /* ── Slider label row ── */
 .srow {
-  display:flex; justify-content:space-between; align-items:center;
-  margin:16px 0 2px 0;
+  display: flex; justify-content: space-between; align-items: center;
+  margin: 14px 0 2px 0;
 }
-.slbl { font-size:13px; color:#64748b; font-weight:400; }
-.sval { font-size:14px; font-weight:600; color:#0f172a; font-variant-numeric:tabular-nums; }
-.shint { font-size:11px; color:#94a3b8; margin:-2px 0 4px 0; }
+/* text-sm text-gray-500 */
+.slbl { font-size: 13px; color: #64748b; font-weight: 400; }
+/* text-sm font-semibold text-brand-black */
+.sval { font-size: 13px; font-weight: 600; color: #0f172a; font-variant-numeric: tabular-nums; }
+/* text-xs text-slate-400 */
+.shint { font-size: 11px; color: #94a3b8; margin: -2px 0 4px 0; line-height: 1.6 !important; }
 
-/* ── Sliders ── */
-/* スライダー色は .streamlit/config.toml の primaryColor で制御（公式API） */
-div[data-testid="stSlider"] { margin-top:-2px !important; margin-bottom:0 !important; }
-div[data-testid="stSlider"] p { display:none !important; }
+/* ── Slider (color controlled by config.toml primaryColor) ── */
+div[data-testid="stSlider"] { margin-top: -2px !important; margin-bottom: 0 !important; }
+div[data-testid="stSlider"] p { display: none !important; }
 
 /* ── Number input ── */
-label[data-testid="stWidgetLabel"] { font-size:11px !important; color:#94a3b8 !important; }
+label[data-testid="stWidgetLabel"] { font-size: 11px !important; color: #94a3b8 !important; }
 div[data-testid="stNumberInput"] input {
-  border-radius:8px !important; border:1px solid #e2e8f0 !important;
-  font-size:13px !important; color:#334155 !important;
+  border-radius: 6px !important; border: 1px solid #e2e8f0 !important;
+  font-size: 13px !important; color: #0f172a !important;
 }
-div[data-testid="stCheckbox"] label { font-size:13px !important; color:#475569 !important; }
-div[data-testid="stExpander"] summary { font-size:12px !important; color:#64748b !important; }
+div[data-testid="stCheckbox"] label { font-size: 13px !important; color: #475569 !important; }
+div[data-testid="stExpander"] summary { font-size: 12px !important; color: #64748b !important; }
 
-/* ── Derived value pill ── */
+/* ── Pill badge: bg-brand-lightest text-brand rounded-full ── */
 .pill {
-  display:inline-flex; align-items:center; gap:4px;
-  background:#f0f5ff; border:1px solid #c0d4ff;
-  border-radius:20px; padding:3px 12px;
-  font-size:12px; font-weight:600; color:#2b70ef;
-  margin:4px 0 0 0;
+  display: inline-flex; align-items: center;
+  background: #f0f5ff; border: 1px solid #c0d4ff;
+  border-radius: 20px; padding: 2px 10px;
+  font-size: 11px; font-weight: 600; color: #2b70ef;
+  margin: 4px 0 0 4px;
 }
 
 /* ── Hero ── */
 .hero {
-  background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);
-  border-radius:12px; padding:24px 28px; margin-bottom:12px;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+  border-radius: 12px; padding: 24px 28px; margin-bottom: 12px;
 }
+/* text-xs font-medium uppercase tracking-wide */
 .hero-lbl {
-  font-size:11px; font-weight:600; color:rgba(255,255,255,.5);
-  letter-spacing:.1em; text-transform:uppercase; margin:0 0 6px 0;
+  font-size: 11px; font-weight: 500; color: rgba(255,255,255,.5);
+  letter-spacing: .1em; text-transform: uppercase; margin: 0 0 6px 0;
 }
+/* text-2xl font-bold → hero is larger */
 .hero-num {
-  font-size:52px; font-weight:700; color:#fff; line-height:1;
-  font-variant-numeric:tabular-nums; margin:0;
+  font-size: 48px; font-weight: 700; color: #fff;
+  line-height: 1 !important; font-variant-numeric: tabular-nums; margin: 0;
 }
-.hero-sub { font-size:13px; color:rgba(255,255,255,.65); margin:10px 0 0 0; line-height:1.7; }
-.hero-sub b { color:rgba(255,255,255,.9); font-weight:600; }
+/* text-sm text-gray-400 */
+.hero-sub { font-size: 13px; color: rgba(255,255,255,.6); margin: 10px 0 0 0; line-height: 1.8 !important; }
+.hero-sub b { color: rgba(255,255,255,.9); font-weight: 600; }
 
-/* ── KPI 2-col grid ── */
-.kpi-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+/* ── KPI row: 2-col grid ── */
+.kpi-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+/* rounded-xl border border-slate-200 bg-white p-6 shadow-sm */
 .kpi-box {
-  background:#fff; border:1px solid #e2e8f0; border-radius:12px;
-  padding:18px 20px; box-shadow:0 1px 3px rgba(0,0,0,.05);
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+  padding: 18px 20px; box-shadow: 0 1px 3px rgba(0,0,0,.05);
 }
-.kpi-lbl { font-size:11px; font-weight:600; color:#94a3b8; letter-spacing:.08em;
-  text-transform:uppercase; margin:0 0 6px 0; }
-.kpi-val   { font-size:32px; font-weight:700; color:#0f172a; font-variant-numeric:tabular-nums; margin:0; }
-.kpi-val-g { font-size:32px; font-weight:700; color:#059669; font-variant-numeric:tabular-nums; margin:0; }
-.kpi-val-r { font-size:32px; font-weight:700; color:#ef4444; font-variant-numeric:tabular-nums; margin:0; }
-.kpi-sub   { font-size:12px; color:#94a3b8; margin:4px 0 0 0; }
+/* text-xs font-medium text-gray-400 uppercase tracking-wide */
+.kpi-lbl {
+  font-size: 11px; font-weight: 500; color: #94a3b8;
+  letter-spacing: .08em; text-transform: uppercase; margin: 0 0 6px 0;
+}
+/* text-2xl font-bold */
+.kpi-val   { font-size: 28px; font-weight: 700; color: #0f172a; font-variant-numeric: tabular-nums; margin: 0; }
+.kpi-val-g { font-size: 28px; font-weight: 700; color: #059669; font-variant-numeric: tabular-nums; margin: 0; }
+.kpi-val-r { font-size: 28px; font-weight: 700; color: #ef4444; font-variant-numeric: tabular-nums; margin: 0; }
+/* text-sm text-gray-400 */
+.kpi-sub { font-size: 12px; color: #94a3b8; margin: 4px 0 0 0; line-height: 1.6 !important; }
 
-/* ── Before/After ── */
-.cmp { background:#fff; border:1px solid #e2e8f0; border-radius:12px;
-  padding:20px 22px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,.05); }
-.cmp-lbl { font-size:11px; font-weight:600; color:#94a3b8; letter-spacing:.1em;
-  text-transform:uppercase; margin:0 0 14px 0; }
-.cmp-grid { display:grid; grid-template-columns:1fr 32px 1fr; align-items:center; gap:4px; }
-.cmp-box  { border:1px solid #e2e8f0; border-radius:10px; padding:14px 16px; background:#f8fafc; }
-.cmp-box.after { border-color:#bfdbfe; background:#eff6ff; }
-.cmp-tag  { font-size:10px; font-weight:700; color:#94a3b8; text-transform:uppercase;
-  letter-spacing:.06em; margin:0 0 4px 0; }
-.cmp-val  { font-size:22px; font-weight:700; color:#0f172a; font-variant-numeric:tabular-nums; margin:0; }
-.cmp-box.after .cmp-val { color:#1d4ed8; }
-.cmp-note { font-size:11px; color:#64748b; margin:4px 0 0 0; }
-.arrow    { text-align:center; color:#cbd5e1; font-size:20px; }
+/* ── Before/After card: rounded-xl border border-slate-200 bg-white shadow-sm ── */
+.cmp {
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+  padding: 20px 22px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.05);
+}
+.cmp-lbl {
+  font-size: 11px; font-weight: 500; color: #94a3b8;
+  letter-spacing: .08em; text-transform: uppercase; margin: 0 0 14px 0;
+}
+.cmp-grid { display: grid; grid-template-columns: 1fr 32px 1fr; align-items: center; gap: 4px; }
+/* Inner card: rounded-lg border border-slate-100 p-4 */
+.cmp-box { border: 1px solid #f1f5f9; border-radius: 8px; padding: 14px 16px; background: #f8fafc; }
+.cmp-box.after { border-color: #c0d4ff; background: #f0f5ff; }
+/* text-xs font-medium text-gray-400 uppercase */
+.cmp-tag {
+  font-size: 10px; font-weight: 500; color: #94a3b8;
+  text-transform: uppercase; letter-spacing: .06em; margin: 0 0 4px 0;
+}
+/* text-xl font-bold text-brand-black */
+.cmp-val { font-size: 20px; font-weight: 700; color: #0f172a; font-variant-numeric: tabular-nums; margin: 0; }
+.cmp-box.after .cmp-val { color: #2b70ef; }
+/* text-xs text-slate-400 */
+.cmp-note { font-size: 11px; color: #94a3b8; margin: 4px 0 0 0; }
+.arrow { text-align: center; color: #cbd5e1; font-size: 20px; }
+/* Save badge: rounded-full bg-green-50 text-green-800 border border-green-200 */
 .save-badge {
-  display:inline-flex; align-items:center; gap:6px; margin-top:12px;
-  background:#f0fdf4; color:#166534; border:1px solid #bbf7d0;
-  border-radius:8px; padding:6px 14px; font-size:13px; font-weight:600;
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 12px;
+  background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;
+  border-radius: 8px; padding: 5px 12px; font-size: 12px; font-weight: 600;
 }
 
-/* ── Detail rows ── */
-.dtl { background:#fff; border:1px solid #e2e8f0; border-radius:12px;
-  padding:20px 22px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,.05); }
-.dtl-lbl { font-size:11px; font-weight:600; color:#94a3b8; letter-spacing:.1em;
-  text-transform:uppercase; margin:0 0 12px 0; }
-.dr { display:flex; justify-content:space-between; align-items:center;
-  padding:8px 0; font-size:13px; color:#475569; border-bottom:1px solid #f8fafc; }
-.dr.sep  { border-top:1px solid #e2e8f0; margin-top:4px; padding-top:12px; }
-.dr.bold { font-weight:700; font-size:14px; color:#0f172a; }
-.dr.last { border-bottom:none; }
-.dv   { font-variant-numeric:tabular-nums; white-space:nowrap; }
-.dv-g { color:#059669; font-variant-numeric:tabular-nums; white-space:nowrap; }
-.dv-r { color:#ef4444; font-variant-numeric:tabular-nums; white-space:nowrap; }
+/* ── Detail rows card ── */
+.dtl {
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+  padding: 20px 22px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.05);
+}
+.dtl-lbl {
+  font-size: 11px; font-weight: 500; color: #94a3b8;
+  letter-spacing: .08em; text-transform: uppercase; margin: 0 0 12px 0;
+}
+/* text-sm text-slate-600 */
+.dr {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 7px 0; font-size: 13px; color: #475569; border-bottom: 1px solid #f8fafc;
+}
+.dr.sep { border-top: 1px solid #e2e8f0; margin-top: 4px; padding-top: 10px; }
+.dr.bold { font-weight: 700; font-size: 14px; color: #0f172a; }
+.dr.last { border-bottom: none; }
+.dv   { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dv-g { color: #059669; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dv-r { color: #ef4444; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 /* ── Sensitivity table ── */
-.sh { display:grid; grid-template-columns:1.2fr 1fr 1fr 1fr 1.5fr 1fr;
-  font-size:11px; font-weight:600; color:#94a3b8; text-transform:uppercase;
-  letter-spacing:.06em; padding:0 8px 10px 8px; border-bottom:1px solid #e2e8f0; }
-.sr { display:grid; grid-template-columns:1.2fr 1fr 1fr 1fr 1.5fr 1fr;
-  font-size:13px; color:#475569; padding:8px 8px; border-bottom:1px solid #f8fafc; }
-.sr.act { background:#eff6ff; border-radius:8px; color:#1d4ed8; font-weight:700;
-  border-bottom:none; margin:3px 0; }
-
-/* ── Disclaimer ── */
-.warn { font-size:11px; color:#78350f; background:#fffbeb; border:1px solid #fde68a;
-  border-radius:8px; padding:8px 12px; margin-top:12px; line-height:1.6; }
-
-/* ── Print button ── */
-.stButton > button {
-  background:#0f172a !important; color:#fff !important;
-  border:none !important; border-radius:8px !important;
-  padding:10px 20px !important; font-size:13px !important;
-  font-weight:600 !important; cursor:pointer !important;
-  transition:background .15s !important;
+/* Header: bg-gray-50 text-xs text-gray-400 font-medium */
+.sh {
+  display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr 1.5fr 1fr;
+  font-size: 11px; font-weight: 500; color: #94a3b8; text-transform: uppercase;
+  letter-spacing: .06em; padding: 0 8px 10px 8px; border-bottom: 1px solid #e2e8f0;
 }
-.stButton > button:hover { background:#334155 !important; }
+.sr {
+  display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr 1.5fr 1fr;
+  font-size: 13px; color: #475569; padding: 7px 8px; border-bottom: 1px solid #f8fafc;
+}
+/* Active row: bg-brand-lightest text-brand */
+.sr.act {
+  background: #f0f5ff; border-radius: 8px; color: #2b70ef;
+  font-weight: 700; border-bottom: none; margin: 2px 0;
+}
 
-/* ── Print styles ── */
-.print-header { display:none; }
-.print-only   { display:none; }
+/* ── Disclaimer: text-xs text-slate-400 ── */
+.warn {
+  font-size: 11px; color: #78350f; background: #fffbeb; border: 1px solid #fde68a;
+  border-radius: 8px; padding: 8px 12px; margin-top: 12px; line-height: 1.8 !important;
+}
 
+/* ── Button: rounded bg-brand-black text-white ── */
+.stButton > button {
+  background: #0f172a !important; color: #fff !important;
+  border: none !important; border-radius: 6px !important;
+  padding: 8px 20px !important; font-size: 13px !important;
+  font-weight: 500 !important; cursor: pointer !important;
+  transition: background .15s !important;
+}
+.stButton > button:hover { background: #334155 !important; }
+
+/* ── Print ── */
+.print-header { display: none; }
+.print-only   { display: none; }
 @media print {
-  .stApp { background:white !important; }
-  .block-container { padding:0 !important; max-width:100% !important; }
-  [data-testid="stHorizontalBlock"] > div:first-child { display:none !important; }
+  .stApp { background: white !important; }
+  .block-container { padding: 0 !important; max-width: 100% !important; }
+  [data-testid="stHorizontalBlock"] > div:first-child { display: none !important; }
   [data-testid="stHorizontalBlock"] > div:last-child {
-    width:100% !important; max-width:100% !important; flex:none !important;
+    width: 100% !important; max-width: 100% !important; flex: none !important;
   }
-  .print-header { display:block !important; margin-bottom:20px; }
-  .ph-title  { font-size:11px; color:#94a3b8; letter-spacing:.08em; text-transform:uppercase; margin:0; }
-  .ph-name   { font-size:22px; font-weight:700; color:#0f172a; margin:4px 0 0 0; }
-  .ph-line   { border:none; border-top:2px solid #2b70ef; margin:10px 0 0 0; }
-  .print-only { display:block !important; }
-  .cond-grid  { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:16px; }
-  .cond-box   { border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; }
-  .cond-lbl   { font-size:9px; color:#94a3b8; font-weight:700; text-transform:uppercase; margin:0; }
-  .cond-val   { font-size:13px; font-weight:600; color:#0f172a; margin:2px 0 0 0; }
-  .hero { background:#0f172a !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  .hero-num { font-size:36px !important; }
-  .kpi-val, .kpi-val-g, .kpi-val-r { font-size:24px !important; }
-  .card, .kpi-box, .cmp, .dtl { box-shadow:none !important; }
-  @page { margin:12mm 15mm; size:A4; }
+  .print-header { display: block !important; margin-bottom: 20px; }
+  .ph-title { font-size: 11px; color: #94a3b8; letter-spacing: .08em; text-transform: uppercase; margin: 0; }
+  .ph-name  { font-size: 22px; font-weight: 700; color: #0f172a; margin: 4px 0 0 0; }
+  .ph-line  { border: none; border-top: 2px solid #2b70ef; margin: 10px 0 0 0; }
+  .print-only { display: block !important; }
+  .cond-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 16px; }
+  .cond-box  { border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 10px; }
+  .cond-lbl  { font-size: 9px; color: #94a3b8; font-weight: 500; text-transform: uppercase; margin: 0; }
+  .cond-val  { font-size: 13px; font-weight: 600; color: #0f172a; margin: 2px 0 0 0; }
+  .hero { background: #0f172a !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .hero-num { font-size: 36px !important; }
+  .kpi-val, .kpi-val-g, .kpi-val-r { font-size: 22px !important; }
+  @page { margin: 12mm 15mm; size: A4; }
 }
 </style>
 """, unsafe_allow_html=True)
 
-# ── Page header ──
+# ── Page header: text-2xl font-bold text-brand-black ──
 st.markdown("""
 <p class="pg-title">TUNAGアルムナイ　採用費シミュレーター</p>
 <p class="pg-sub">採用コスト・離職データを入力すると、TUNAGアルムナイ導入による削減効果をリアルタイムで算出します</p>
@@ -220,13 +270,15 @@ st.markdown("""
 left, right = st.columns([1, 1.5], gap="large")
 
 # ════════════════════════════════════════════════════
-# ヘルパー関数
+# ヘルパー
 # ════════════════════════════════════════════════════
 def sldr(label, key, mn, mx, step, fmt_fn, hint=""):
     v = st.session_state.get(key, DEFAULTS.get(key, mn))
     st.markdown(
-        f'<div class="srow"><span class="slbl">{label}</span>'
-        f'<span class="sval">{fmt_fn(v)}</span></div>',
+        f'<div class="srow">'
+        f'<span class="slbl">{label}</span>'
+        f'<span class="sval">{fmt_fn(v)}</span>'
+        f'</div>',
         unsafe_allow_html=True,
     )
     if hint:
@@ -237,14 +289,14 @@ def sldr(label, key, mn, mx, step, fmt_fn, hint=""):
 # 左カラム：入力
 # ════════════════════════════════════════════════════
 with left:
-    # 社名
+    # 社名: text-xs font-medium uppercase tracking-wide text-gray-400
     st.markdown('<p class="company-lbl">顧客企業名</p>', unsafe_allow_html=True)
     company_name = st.text_input("顧客企業名", placeholder="例）〇〇株式会社",
                                   label_visibility="collapsed")
 
     st.markdown('<hr class="sec-divider">', unsafe_allow_html=True)
 
-    # ── 採用の現状 ──
+    # ── 採用の現状: text-lg font-semibold ──
     st.markdown('<p class="sec-lbl">採用の現状</p>', unsafe_allow_html=True)
     annual_hires  = sldr("年間採用数", "hires", 0, 5000, 50, lambda v: f"{v:,}名")
     agency_ratio  = sldr("うち人材紹介の比率", "agency_ratio", 0, 100, 1, lambda v: f"{v}%")
@@ -252,7 +304,7 @@ with left:
         st.session_state.get("hires", 1000) * st.session_state.get("agency_ratio", 65) / 100
     )
     st.markdown(
-        f'<p class="shint">→ 人材紹介経由の採用は年間 '
+        f'<p class="shint">→ 人材紹介経由の採用は年間'
         f'<span class="pill">{agency_hires_n:,}名</span></p>',
         unsafe_allow_html=True,
     )
@@ -292,7 +344,7 @@ with left:
             spot_hours = sldr("平均勤務時間/件",      "sh_h",  1,  12,  1, lambda v: f"{v}h")
 
 # ════════════════════════════════════════════════════
-# 計算（スプレッドシートの構造に準拠）
+# 計算
 # ════════════════════════════════════════════════════
 agency_hires   = annual_hires * agency_ratio / 100
 current_cost   = agency_hires * agency_unit
@@ -302,7 +354,7 @@ alumni_returns = min(
 )
 new_agency     = max(0, agency_hires - alumni_returns)
 new_cost       = new_agency * agency_unit
-recruit_saving = current_cost - new_cost        # = alumni_returns × agency_unit
+recruit_saving = current_cost - new_cost
 
 spot_saving    = spot_count * 12 * spot_wage * spot_hours * 0.20 if use_spot else 0
 total_saving   = recruit_saving + spot_saving
@@ -314,7 +366,6 @@ roi            = total_saving / tunag_y2 if tunag_y2 > 0 else 0
 pb_months      = tunag_y1 / (total_saving / 12) if total_saving > 0 else float("inf")
 monthly_save   = total_saving / 12
 
-def yen(n): return f"¥{n:,.0f}"
 def man(n): return f"{n/10_000:.0f}万円"
 
 # ════════════════════════════════════════════════════
@@ -333,7 +384,7 @@ with right:
     </div>
     """, unsafe_allow_html=True)
 
-    # ── ヒーロー ──
+    # ── Hero ──
     sub_parts = [f"毎月 <b>約{man(monthly_save)}</b> の節約"]
     if pb_months != float("inf"):
         sub_parts.append(f"初期費用は <b>{pb_str}</b> で回収")
@@ -346,7 +397,7 @@ with right:
     </div>
     """, unsafe_allow_html=True)
 
-    # ── ROI・回収期間 ──
+    # ── KPI: text-2xl font-bold ──
     roi_cls = "kpi-val" if roi >= 1 else "kpi-val-r"
     st.markdown(f"""
     <div class="kpi-row">
@@ -363,7 +414,7 @@ with right:
     </div>
     """, unsafe_allow_html=True)
 
-    # ── 現状 vs 導入後 ──
+    # ── Before/After: inner cards rounded-lg border border-slate-100 p-4 ──
     if current_cost > 0:
         pct = recruit_saving / current_cost * 100
         st.markdown(f"""
@@ -386,16 +437,16 @@ with right:
         </div>
         """, unsafe_allow_html=True)
 
-    # ── 費用対効果明細 ──
+    # ── Detail rows ──
     def dr(label, val, cls="dv", bold=False, sep=False, last=False):
         rc = "dr" + (" bold" if bold else "") + (" sep" if sep else "") + (" last" if last else "")
         return f'<div class="{rc}"><span>{label}</span><span class="{cls}">{val}</span></div>'
 
-    spot_dr = dr("　スポットワーク手数料削減（タイミー代替）", "＋" + yen(spot_saving), "dv-g") if use_spot else ""
+    spot_dr = dr("　スポットワーク手数料削減（タイミー代替）", "＋" + man(spot_saving), "dv-g") if use_spot else ""
     s1c = "dv-g" if net_y1 >= 0 else "dv-r"
     s2c = "dv-g" if net_y2 >= 0 else "dv-r"
 
-    # 印刷時のみの入力条件サマリー
+    # 印刷時のみ表示する入力条件
     st.markdown(f"""
     <div class="print-only">
       <div class="cond-grid">
@@ -425,7 +476,7 @@ with right:
     </div>
     """, unsafe_allow_html=True)
 
-    # ── 感度分析 ──
+    # ── Sensitivity analysis ──
     with st.expander("最悪シナリオでも黒字か確認する"):
         scenarios = [("保守的", 20, 5), ("標準", 30, 10), ("楽観的", 40, 15)]
         rows = ""
@@ -445,7 +496,7 @@ with right:
         {rows}
         """, unsafe_allow_html=True)
 
-    # ── 印刷ボタン ──
+    # ── Print button: rounded bg-brand-black text-white ──
     st.markdown("<div style='margin-top:20px'>", unsafe_allow_html=True)
     if st.button("PDF保存 / 印刷", use_container_width=False):
         components.html("<script>window.print();</script>", height=0)
