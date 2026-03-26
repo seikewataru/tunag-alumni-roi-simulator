@@ -74,10 +74,8 @@ div[data-testid="stTextInput"] input:focus {
 .shint { font-size:11px; color:#94a3b8; margin:-2px 0 4px 0; }
 
 /* ── Sliders ── */
+/* スライダー色は .streamlit/config.toml の primaryColor で制御（公式API） */
 div[data-testid="stSlider"] { margin-top:-2px !important; margin-bottom:0 !important; }
-div[data-testid="stSlider"] > div > div > div[data-testid="stSliderThumb"] { background:#2b70ef !important; }
-div[data-testid="stSlider"] [data-baseweb="slider"] > div:first-child { background:#e2e8f0 !important; }
-div[data-testid="stSlider"] [data-baseweb="slider"] > div:nth-child(2) { background:#2b70ef !important; }
 div[data-testid="stSlider"] p { display:none !important; }
 
 /* ── Number input ── */
