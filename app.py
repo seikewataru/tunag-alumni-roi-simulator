@@ -24,7 +24,8 @@ st.markdown("""
 /* ── Base ── */
 .stApp { background: #f9fafb; }
 .block-container { padding: 28px 32px 48px !important; max-width: 1120px !important; }
-* {
+.stApp, .stApp p, .stApp span, .stApp div, .stApp h1, .stApp h2, .stApp h3,
+.stApp label, .stApp input, .stApp button, .stApp textarea {
   font-family: "Inter", "Noto Sans JP", "Hiragino Sans", sans-serif !important;
 }
 footer, #MainMenu, header[data-testid="stHeader"],
